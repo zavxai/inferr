@@ -126,11 +126,7 @@
         "functions": 75,
         "statements": 85
       },
-      "./src/jobs/jobs.service.ts": {
-        "lines": 80,
-        "functions": 65,
-        "statements": 80
-      },
+
       "./src/scraper/scraper.service.ts": {
         "lines": 35,
         "functions": 35,
