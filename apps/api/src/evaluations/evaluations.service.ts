@@ -84,7 +84,7 @@ export class EvaluationsService {
    * timestamp. Returns `null` on any error so the caller can safely ignore it.
    */
   async evaluate(input: EvaluationInput): Promise<EvaluationResult | null> {
-    const { question, answer, context, userId } = input;
+    const { question, answer, context, userId, traceId } = input;
 
     if (!answer?.trim() || !question?.trim()) {
       this.logger.warn(
@@ -142,6 +142,9 @@ Score the above response.`;
           traceName: 'RAG Evaluation',
           userId,
           tags: ['evaluation'],
+          metadata: {
+            parentTraceId: traceId,
+          },
         });
         if (handler) {
           config.callbacks = [handler];
@@ -177,6 +180,24 @@ Score the above response.`;
           `context_recall=${scores.context_recall.toFixed(2)}` +
           (userId ? ` [user=${userId}]` : ''),
       );
+
+      if (traceId) {
+        this.langfuseService.score({
+          traceId,
+          name: 'faithfulness',
+          value: scores.faithfulness,
+        });
+        this.langfuseService.score({
+          traceId,
+          name: 'answer_relevance',
+          value: scores.answer_relevance,
+        });
+        this.langfuseService.score({
+          traceId,
+          name: 'context_recall',
+          value: scores.context_recall,
+        });
+      }
 
       return evaluation;
     } catch (err) {

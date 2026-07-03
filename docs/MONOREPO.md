@@ -10,9 +10,7 @@ Turborepo + pnpm workspaces monorepo for inferr.
 │   ├── api/                 # NestJS backend API (port 3001)
 │   └── web/                 # Next.js 15 frontend (port 3000)
 ├── packages/
-│   ├── types/               # Shared TypeScript types
-│   ├── utils/               # Shared utilities
-│   └── config/              # Shared configuration
+│   └── types/               # Shared TypeScript types
 ├── docs/                    # Architecture notes, OAuth setup
 ├── bruno/                   # Bruno API collection
 ├── docker-compose.yml       # Local Postgres (port 5433)

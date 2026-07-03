@@ -50,11 +50,11 @@ docker compose ps       # Verify healthy
 ### Database
 PostgreSQL with **pgvector** extension via `pgvector/pgvector:pg16` Docker image. Drizzle ORM is used throughout — no TypeORM, no Prisma.
 
-**Schema tables:** `users`, `articles`, `user_interests`, `document_embeddings`, `mcp_tokens`
+**Schema tables:** `users`, `articles`, `refresh_tokens`, `mcp_tokens`, `user_interests`, `jobs`, `market_reports`, `ai_evaluations`, `mcp_clients`, `pending_mcp_authorizations`, `pending_auth_codes`, `cron_locks`
 
-The `articles.embedding` and `document_embeddings.embedding` columns are `vector(1536)` (OpenAI `text-embedding-3-small`). Vector similarity search uses the native `<=>` operator via raw SQL.
+The `articles.embedding` and `user_interests.queryEmbedding` columns are `vector(1536)` (OpenAI `text-embedding-3-small`). Vector similarity search uses the native `<=>` operator via raw SQL.
 
-**Column naming:** The Drizzle schema uses snake_case column names (e.g. `google_id`, `created_at`). The pre-existing `users` table had camelCase columns which were manually renamed — keep all new columns snake_case.
+**Column naming:** The Drizzle schema uses snake_case column names (e.g. `google_id`, `created_at`). Keep all new columns snake_case.
 
 **Drizzle config** lives at `apps/api/drizzle.config.ts` with `ssl: false` for local Docker Postgres. Migration files output to `apps/api/drizzle/`.
 
@@ -73,13 +73,19 @@ Rules of thumb:
 
 | Module | Responsibility |
 |---|---|
-| `DrizzleModule` | Global, provides the `DRIZZLE` symbol (single `NodePgDatabase` instance) |
-| `AuthModule` | Google OAuth 2.0 via Passport, `/auth/google`, `/auth/google/callback`, `/auth/me` |
-| `UsersModule` | DB upsert/lookup for users; used by AuthModule |
-| `RAGModule` | OpenAI embeddings + pgvector similarity search + GPT-4o-mini generation |
-| `ScraperModule` | Fetches top 30 articles from HN Algolia API and Dev.to, deduplicates by URL |
-| `McpModule` | MCP server over Streamable HTTP at `POST/GET/DELETE /mcp`; exposes 3 tools |
-| `McpAuthModule` | Standalone OAuth 2.1 provider (`McpOAuthProvider`); breaks circular dep between `AuthModule` ↔ `McpModule` |
+| `DrizzleModule` | Global database module, provides the `DRIZZLE` provider injection symbol |
+| `AuthModule` | Google OAuth 2.0, token generation/rotation, session handling & guards |
+| `UsersModule` | User preference persistence & account deletion cascades |
+| `AiModule` | Integrates OpenAI SDK to generate summaries and vector embeddings |
+| `FeedModule` | Fetches and ranks articles using cosine similarity vectors + tag boosts |
+| `ChatModule` | LangGraph agentic RAG pipeline (retrieve -> grade -> rewrite -> generate) |
+| `ScraperModule` | Pulls raw developer articles from Hacker News, Dev.to, and Cheerio |
+| `JobsModule` | Remotive job board scraper and market report generator |
+| `SchedulerModule` | Runs daily automated cron pipelines under a database-backed distributed lock |
+| `McpModule` | SSE listener exposing `search_articles`, `get_personalized_feed`, and `ask_inferr` tools |
+| `McpAuthModule` | Sub-module of `McpModule` providing custom OAuth 2.1 authorization & tokens |
+| `EvaluationsModule` | Internal LLM-as-judge service for RAG response quality metrics |
+| `LangfuseModule` | Integrates callback handlers for prompt tracing & pipeline telemetry |
 
 **DB injection pattern** — every service that needs the DB injects it the same way:
 ```typescript
@@ -115,6 +121,12 @@ constructor(@Inject(DRIZZLE) private db: DrizzleDB) {}
 
 **Single-instance caveat:** Active MCP SSE session transports are stored in-memory (in `McpService`'s `transports` Map), meaning horizontal scaling requires sticky sessions at the load balancer/gateway level so that subsequent requests with a given session ID route to the container holding that socket. Registered OAuth clients, tokens, and pending PKCE authorization states are fully database-backed and cluster-safe.
 
+### Scheduler & Locking
+NestJS internal cron tasks are scheduled via `@nestjs/schedule` decorators in `SchedulerService`. To prevent concurrent execution across multiple running API replicas (e.g., inside Kubernetes pods), executions are wrapped in `runWithLock(jobName, ttl, callback)`:
+- Uses the `cron_locks` table (primary key `job_name`).
+- Acquires the lock by attempting to insert a row; unique constraint violation indicates the lock is currently active on another instance, causing the execution to be skipped.
+- Expired locks (older than a 6-hour TTL safety window) are cleaned up automatically before attempting acquisition.
+- Releases the lock on callback completion or failure via a `finally` block.
 
 ### Next.js web app
 - `app/page.tsx` — public landing page; Sign In links to `${NEXT_PUBLIC_API_URL}/auth/google`

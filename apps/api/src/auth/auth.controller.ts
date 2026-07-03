@@ -8,10 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
+import { UserThrottlerGuard } from '../common/guards/user-throttler.guard';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleAuthGuard } from './google-auth.guard';
 import { GoogleMcpAuthGuard } from './google-mcp-auth.guard';
 import { UsersService } from '../users/users.service';
 import { McpOAuthProvider } from '../mcp/mcp-oauth.provider';
@@ -36,11 +38,11 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuth() {}
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     const googleProfile = req.user as {
       id?: string;
@@ -144,7 +146,7 @@ export class AuthController {
 
   @Post('refresh')
   @Get('refresh')
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(UserThrottlerGuard)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async refresh(@Req() req: Request, @Res() res: Response) {
     console.log('[refresh] cookie header:', req.headers.cookie ?? '(none)');

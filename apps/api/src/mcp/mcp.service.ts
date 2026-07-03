@@ -11,7 +11,7 @@ import type { DrizzleDB } from '../db/drizzle.provider';
 import { AiService } from '../ai/ai.service';
 import { FeedService } from '../feed/feed.service';
 import { AgenticRagService } from '../chat/agentic-rag.service';
-import { JobsService } from '../jobs/jobs.service';
+
 
 @Injectable()
 export class McpService implements OnModuleDestroy {
@@ -27,7 +27,6 @@ export class McpService implements OnModuleDestroy {
     private readonly aiService: AiService,
     private readonly feedService: FeedService,
     private readonly agenticRag: AgenticRagService,
-    private readonly jobsService: JobsService,
   ) {}
 
   /**
@@ -131,70 +130,7 @@ export class McpService implements OnModuleDestroy {
       },
     );
 
-    server.tool(
-      'get_market_report',
-      'Fetch the latest tech job market report identifying the top trending fields, demand score (1-5, where 5 is hottest), and signals/trends. Use when the user asks about job market trends, hot technologies, or high-demand fields.',
-      {},
-      async () => {
-        const report = await this.jobsService.getMarketReport();
-        if (report.roles.length === 0) {
-          return {
-            content: [
-              { type: 'text', text: 'No market report data available.' },
-            ],
-          };
-        }
 
-        const text =
-          `Tech Job Market Report (Generated: ${report.generatedAt}):\n\n` +
-          report.roles
-            .map(
-              (r, i) =>
-                `${i + 1}. ${r.role}\n   Demand Score: ${r.demand}/5\n   Trend Signal: ${r.trend}`,
-            )
-            .join('\n\n');
-
-        return { content: [{ type: 'text', text }] };
-      },
-    );
-
-    server.tool(
-      'get_job_report',
-      'Fetch hiring statistics from the last 30 days, including top hiring companies, top requested skills, and category breakdowns. Use when the user asks for in-depth hiring statistics, top skills in demand, or top companies hiring.',
-      {},
-      async () => {
-        const report = await this.jobsService.getReport();
-        if (report.totalListings === 0) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: 'No hiring statistics available for the last 30 days.',
-              },
-            ],
-          };
-        }
-
-        const skills = report.topSkills
-          .map((s, i) => `   ${i + 1}. ${s.skill} (${s.count} listings)`)
-          .join('\n');
-        const companies = report.topCompanies
-          .map((c, i) => `   ${i + 1}. ${c.company} (${c.count} listings)`)
-          .join('\n');
-        const categories = report.roleBreakdown
-          .map((c, i) => `   ${i + 1}. ${c.category} (${c.count} listings)`)
-          .join('\n');
-
-        const text =
-          `Hiring Statistics (Last 30 Days | Generated: ${report.generatedAt}):\n` +
-          `Total Job Listings: ${report.totalListings}\n\n` +
-          `Top Skills/Tags in Demand:\n${skills}\n\n` +
-          `Top Hiring Companies:\n${companies}\n\n` +
-          `Role Breakdown:\n${categories}`;
-
-        return { content: [{ type: 'text', text }] };
-      },
-    );
 
     return server;
   }

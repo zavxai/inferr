@@ -98,36 +98,7 @@ const features = [
       </div>
     ),
   },
-  {
-    title: 'Tech Market',
-    desc: 'Daily snapshot of what the industry is actually hiring for — trending skills, hot roles, and top companies, pulled from live job data.',
-    checks: ['Remotive remote job data, refreshed daily', 'Ranked skills by hiring demand', 'Role breakdown by category'],
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-      </svg>
-    ),
-    visual: (
-      <div className={styles.mockMarket}>
-        <div className={styles.mockMarketHeader}>Top Skills in Demand</div>
-        {[
-          { skill: 'TypeScript', count: 42 },
-          { skill: 'React', count: 38 },
-          { skill: 'AWS', count: 31 },
-          { skill: 'Python', count: 27 },
-        ].map((s, i) => (
-          <div key={s.skill} className={styles.mockMarketRow}>
-            <span className={styles.mockMarketRank}>{String(i + 1).padStart(2, '0')}</span>
-            <span className={styles.mockMarketSkill}>{s.skill}</span>
-            <div className={styles.mockMarketBar}>
-              <div className={styles.mockMarketFill} style={{ width: `${Math.round((s.count / 42) * 100)}%` }} />
-            </div>
-            <span className={styles.mockMarketCount}>{s.count}</span>
-          </div>
-        ))}
-      </div>
-    ),
-  },
+
   {
     title: 'Model Context Protocol',
     desc: 'Connect your personalized developer news feed directly to Claude Desktop, Cursor, or Claude Code. Access search and AI summaries right inside your workspace.',
@@ -194,7 +165,6 @@ const steps = [
   { n: '02', title: 'Set your interests', desc: 'Tell us your stack. NestJS, Rust, LLMs — whatever you actually work with.' },
   { n: '03', title: 'Feed builds itself', desc: 'Articles scraped, summarised, and ranked for you every 24h.' },
   { n: '04', title: 'Ask it anything', desc: 'Use semantic chat to query your feed like a database.' },
-  { n: '05', title: 'Check the Tech Market', desc: 'See what skills are trending in real job postings today — no guesswork.' },
 ]
 
 export default function Home() {

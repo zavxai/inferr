@@ -7,7 +7,7 @@ import { DrizzleModule } from './db/drizzle.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScraperModule } from './scraper/scraper.module';
-import { JobsModule } from './jobs/jobs.module';
+
 import { AiModule } from './ai/ai.module';
 import { FeedModule } from './feed/feed.module';
 import { ChatModule } from './chat/chat.module';
@@ -25,7 +25,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     AuthModule,
     UsersModule,
     ScraperModule,
-    JobsModule,
+
     AiModule,
     FeedModule,
     ChatModule,

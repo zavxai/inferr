@@ -60,6 +60,7 @@ describe('EvaluationsService (unit)', () => {
     mockLangfuseService = {
       isEnabled: jest.fn().mockReturnValue(false),
       createCallbackHandler: jest.fn(),
+      score: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -258,11 +259,53 @@ describe('EvaluationsService (unit)', () => {
       traceName: 'RAG Evaluation',
       userId: baseInput.userId,
       tags: ['evaluation'],
+      metadata: {
+        parentTraceId: undefined,
+      },
     });
     expect(judgeLlmMock.invoke).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({ callbacks: [mockHandler] }),
     );
+  });
+
+  it('passes Langfuse callback handler to LLM and submits scores when Langfuse is enabled and traceId is provided', async () => {
+    const mockHandler = { name: 'mockCallbackHandler' };
+    mockLangfuseService.isEnabled.mockReturnValue(true);
+    mockLangfuseService.createCallbackHandler.mockReturnValue(mockHandler);
+
+    const traceId = 't-test-999';
+    await service.evaluate({ ...baseInput, traceId });
+
+    expect(mockLangfuseService.createCallbackHandler).toHaveBeenCalledWith({
+      traceName: 'RAG Evaluation',
+      userId: baseInput.userId,
+      tags: ['evaluation'],
+      metadata: {
+        parentTraceId: traceId,
+      },
+    });
+    expect(judgeLlmMock.invoke).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ callbacks: [mockHandler] }),
+    );
+
+    expect(mockLangfuseService.score).toHaveBeenCalledTimes(3);
+    expect(mockLangfuseService.score).toHaveBeenCalledWith({
+      traceId,
+      name: 'faithfulness',
+      value: happyScores.faithfulness,
+    });
+    expect(mockLangfuseService.score).toHaveBeenCalledWith({
+      traceId,
+      name: 'answer_relevance',
+      value: happyScores.answer_relevance,
+    });
+    expect(mockLangfuseService.score).toHaveBeenCalledWith({
+      traceId,
+      name: 'context_recall',
+      value: happyScores.context_recall,
+    });
   });
 
   it('evaluateAsync logs unhandled rejection if evaluate throws', async () => {

@@ -8,13 +8,13 @@ Personalized developer news feed powered by AI. Sign in with Google, pick intere
 |---|---|
 | Frontend | Next.js 15, Tailwind CSS, TypeScript |
 | Backend | NestJS 11, TypeScript |
-| Database | PostgreSQL 16 + pgvector (Neon in prod, Docker locally) |
-| Scheduling | External cron (cron-job.org) pings `/health` every 10 min during active hours to keep the Render free-tier warm; GitHub Actions cron → `POST /scraper/run` runs the daily pipeline; `@nestjs/schedule` in-process fallback |
+| Database | PostgreSQL 16 + pgvector (Neon in prod, Docker locally), featuring distributed locks |
+| Scheduling | External cron (cron-job.org) pings `/health` for keep-alive; GitHub Actions cron triggers daily pipeline; `@nestjs/schedule` runs internal crons backed by a database-backed distributed lock (`cron_locks` table) |
 | ORM | Drizzle ORM |
-| AI | OpenAI `gpt-4o-mini` + `text-embedding-3-small`; LangGraph agentic pipeline |
-| Auth | Google OAuth 2.0 → hashed refresh token (HttpOnly cookie, 7d) + short-lived JWT access token (15m) |
+| AI | OpenAI `gpt-4o-mini` + `text-embedding-3-small`; LangGraph agentic pipeline; LLM-as-judge evaluations |
+| Auth | Google OAuth 2.0 → hashed refresh token (HttpOnly cookie, 7d) + short-lived JWT access token (15m); OAuth 2.1 + PKCE for MCP |
 | Monorepo | pnpm workspaces + Turborepo |
-| Deploy | API → Render, Web → Vercel |
+| Deploy | API → Render, Web → Vercel, Local Kubernetes support (Minikube) |
 
 ## System Architecture
 
@@ -37,14 +37,22 @@ graph TD
         ScraperMod["Scraper Module<br/>(Cheerio + APIs)"]
         JobsMod["Jobs Module<br/>(Jobs & Market Reports)"]
         McpMod["MCP Module<br/>(SSE & Tools)"]
+        AiMod["AI Module<br/>(Embeddings & Processing)"]
+        SchedMod["Scheduler Module<br/>(Cron & Distributed Locks)"]
+        EvalMod["Evaluations Module<br/>(LLM-as-judge Evaluations)"]
+        LangfuseMod["Langfuse Module<br/>(Tracing Integration)"]
     end
 
     subgraph DBSubgraph ["Database Layer (PostgreSQL)"]
         Postgres[(PostgreSQL + pgvector)]
         UsersT[(users / user_interests)]
-        ArticlesT[(articles / embeddings)]
+        ArticlesT[(articles)]
         JobsT[(jobs / market_reports)]
         McpT[(mcp_tokens / mcp_clients)]
+        RefreshTokensT[(refresh_tokens)]
+        AiEvaluationsT[(ai_evaluations)]
+        CronLocksT[(cron_locks)]
+        McpAuthT[(pending_mcp_auths / pending_auth_codes)]
     end
 
     subgraph ExternalSubgraph ["External Services"]
@@ -52,8 +60,10 @@ graph TD
         OpenAI["OpenAI API<br/>(gpt-4o-mini / text-embedding-3-small)"]
         NewsAPIs["Hacker News & Dev.to APIs"]
         Cheerio["Article Websites (Scraping)"]
-        GithubActions["GitHub Actions (Daily Cron)"]
+        GithubActions["GitHub Actions (Daily Scrape)"]
         CronJob["cron-job.org (Keep-alive)"]
+        Jaeger["Jaeger (OTel Traces)"]
+        LangfuseSrv["Langfuse Cloud/Self-hosted (Tracing)"]
     end
 
     %% Connections
@@ -69,29 +79,48 @@ graph TD
     %% Module flows
     AuthMod -->|OAuth Consent| GoogleOAuth
     AuthMod -->|Manage Users & Sessions| UsersT
+    AuthMod -->|Rotate Tokens| RefreshTokensT
 
-    FeedMod -->|Generate Query Vector| OpenAI
+    FeedMod -->|Generate Query Vector| AiMod
     FeedMod -->|HNSW Vector Search| ArticlesT
 
     ChatMod -->|Orchestrate Agent Pipeline| OpenAI
     ChatMod -->|Retrieve Related Articles| ArticlesT
+    ChatMod -->|Trigger Evaluations| EvalMod
 
     ScraperMod -->|Fetch Metadata| NewsAPIs
     ScraperMod -->|Cheerio Extract HTML| Cheerio
-    ScraperMod -->|Summarize & Embed| OpenAI
     ScraperMod -->|Save Parsed Content| ArticlesT
+
+    AiMod -->|Summarize & Embed| OpenAI
+    AiMod -->|Generate Embeddings| ArticlesT
 
     JobsMod -->|Trend Analysis| OpenAI
     JobsMod -->|Save Market Data| JobsT
 
     McpMod -->|Validate Session / Token| McpT
+    McpMod -->|OAuth Bridging| McpAuthT
     McpMod -->|Expose Tools: search_articles, ask_inferr, etc.| Postgres
+
+    SchedMod -->|Acquire Lock| CronLocksT
+    SchedMod -->|Trigger Scrape & Jobs| ScraperMod
+    SchedMod -->|Trigger Job Scrape| JobsMod
+
+    EvalMod -->|Judge LLM Outputs| OpenAI
+    EvalMod -->|Log Traces| LangfuseMod
+    EvalMod -->|Save Evaluations| AiEvaluationsT
+
+    LangfuseMod -->|Send Telemetry| LangfuseSrv
 
     %% Database internals
     Postgres === UsersT
     Postgres === ArticlesT
     Postgres === JobsT
     Postgres === McpT
+    Postgres === RefreshTokensT
+    Postgres === AiEvaluationsT
+    Postgres === CronLocksT
+    Postgres === McpAuthT
 
     %% External cron jobs
     GithubActions -->|Trigger Pipeline| ScraperMod
@@ -106,10 +135,11 @@ graph TD
 
     class UserBrowser,McpClient client;
     class NextJS web;
-    class AppCtrl,AuthMod,FeedMod,ChatMod,ScraperMod,JobsMod,McpMod api;
-    class Postgres,UsersT,ArticlesT,JobsT,McpT db;
-    class GoogleOAuth,OpenAI,NewsAPIs,Cheerio,GithubActions,CronJob external;
+    class AppCtrl,AuthMod,FeedMod,ChatMod,ScraperMod,JobsMod,McpMod,AiMod,SchedMod,EvalMod,LangfuseMod api;
+    class Postgres,UsersT,ArticlesT,JobsT,McpT,RefreshTokensT,AiEvaluationsT,CronLocksT,McpAuthT db;
+    class GoogleOAuth,OpenAI,NewsAPIs,Cheerio,GithubActions,CronJob,Jaeger,LangfuseSrv external;
 ```
+
 
 ## Structure
 
@@ -180,7 +210,19 @@ pnpm db:studio     # Drizzle Studio at https://local.drizzle.studio
 
 Migrations run automatically on API startup in production.
 
-**Schema tables:** `users`, `articles`, `refresh_tokens`, `mcp_tokens`, `user_interests`, `jobs`, `market_reports`, `ai_evaluations`, `mcp_clients`, `pending_mcp_authorizations`, `pending_auth_codes`
+**Schema tables:** `users`, `articles`, `refresh_tokens`, `mcp_tokens`, `user_interests`, `jobs`, `market_reports`, `ai_evaluations`, `mcp_clients`, `pending_mcp_authorizations`, `pending_auth_codes`, `cron_locks`
+
+### Distributed Cron Locks
+
+To prevent concurrent execution of cron tasks when running multiple replicas of the NestJS API (such as in a local Kubernetes deployment or during scaling on Render), the internal scheduler service ([scheduler.service.ts](file:///home/johnvesslyalti/johnvesslyalti_workspace/inferr/apps/api/src/scheduler/scheduler.service.ts)) implements a database-backed distributed lock mechanism:
+* **Storage**: The `cron_locks` table stores a unique `job_name` (Primary Key) and `locked_at` timestamp.
+* **Flow**:
+  1. **Clean up**: Any expired lock for the job name (older than 6 hours) is deleted.
+  2. **Acquisition**: A new row is inserted with the job's unique name. If another instance is running the job, the database constraint violation (duplicate key) is caught, and the current instance gracefully skips execution.
+  3. **Execution**: The job callback is executed.
+  4. **Release**: The lock is deleted from the `cron_locks` table in a `finally` block to release it for future runs.
+
+---
 
 ## Ingestion Pipeline
 
@@ -415,3 +457,10 @@ This project contains a complete, local Kubernetes deployment setup located in t
   ```bash
   kubectl get pods
   ```
+
+### Task Scheduling & Observability in Kubernetes
+
+When deploying the API service to Kubernetes:
+1. **Internal Scheduler Coordination**: The API containers run the NestJS internal scheduler. If scaled to multiple replicas, the pods coordinate scheduled executions (`runDailyScrape` and `runDailyJobScrape`) using the `cron_locks` database table. Only one pod acquires the lock and runs the task; other pods log a warning and gracefully skip the run.
+2. **External Trigger Alternative**: The included `scraper-cronjob.yaml` manifest triggers the scraper pipeline externally via a cURL command. If you rely solely on this external controller, you may disable internal scheduling parameters or allow the database distributed lock to coordinate.
+3. **Observability Integration**: Jaeger tracing and Langfuse logs can be routed from within the Kubernetes cluster. Customize the variables in `kubernetes/configmap.yaml` (e.g. `LANGFUSE_BASE_URL` and `OTEL_EXPORTER_OTLP_ENDPOINT`) and add your Langfuse keys to `kubernetes/secrets.yaml`.

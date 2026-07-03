@@ -41,3 +41,10 @@ opencode.json
 # Kubernetes Secrets
 kubernetes/secrets.yaml
 
+# Local database/data directories
+data/
+
+# Scratch folder
+scratch/
+
+

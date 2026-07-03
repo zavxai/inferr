@@ -22,15 +22,16 @@ export class AuthService {
     return crypto.createHash('sha256').update(raw).digest('hex');
   }
 
-  async validateAndUpsertGoogleUser(googleProfile: {
-    id: string;
-    displayName: string;
-    emails: { value: string }[];
-    photos: { value: string }[];
-  }): Promise<User> {
+  async validateAndUpsertGoogleUser(
+    googleProfile: {
+      id: string;
+      displayName: string;
+      emails: { value: string }[];
+      photos: { value: string }[];
+    },
+  ): Promise<User> {
     return this.usersService.upsert(googleProfile);
   }
-
   async getUserById(id: string): Promise<User | null> {
     return this.usersService.findById(id);
   }
@@ -47,7 +48,7 @@ export class AuthService {
 
     await this.db
       .insert(refreshTokens)
-      .values({ userId, token: tokenHash, expiresAt });
+      .values({ userId, tokenHash, expiresAt });
     return raw; // raw token goes into the cookie; only the hash is persisted
   }
 
@@ -59,7 +60,7 @@ export class AuthService {
     const result = await this.db
       .select()
       .from(refreshTokens)
-      .where(eq(refreshTokens.token, tokenHash))
+      .where(eq(refreshTokens.tokenHash, tokenHash))
       .limit(1);
 
     const stored = result[0];
@@ -88,7 +89,7 @@ export class AuthService {
           const nextResult = await this.db
             .select()
             .from(refreshTokens)
-            .where(eq(refreshTokens.token, current.replacedByHash))
+            .where(eq(refreshTokens.tokenHash, current.replacedByHash))
             .limit(1);
 
           const next = nextResult[0];
@@ -106,7 +107,7 @@ export class AuthService {
             await this.db.transaction(async (tx) => {
               await tx
                 .insert(refreshTokens)
-                .values({ userId: user.id, token: newHash, expiresAt });
+                .values({ userId: user.id, tokenHash: newHash, expiresAt });
               const result = await tx
                 .update(refreshTokens)
                 .set({
@@ -116,7 +117,7 @@ export class AuthService {
                 })
                 .where(
                   and(
-                    eq(refreshTokens.token, current.replacedByHash!),
+                    eq(refreshTokens.tokenHash, current.replacedByHash!),
                     eq(refreshTokens.revoked, false),
                   ),
                 );
@@ -157,11 +158,11 @@ export class AuthService {
     await this.db.transaction(async (tx) => {
       await tx
         .insert(refreshTokens)
-        .values({ userId: stored.userId, token: newHash, expiresAt });
+        .values({ userId: stored.userId, tokenHash: newHash, expiresAt });
       await tx
         .update(refreshTokens)
         .set({ revoked: true, revokedAt: new Date(), replacedByHash: newHash })
-        .where(eq(refreshTokens.token, tokenHash));
+        .where(eq(refreshTokens.tokenHash, tokenHash));
     });
 
     const user = await this.usersService.findById(stored.userId);
@@ -175,6 +176,6 @@ export class AuthService {
     await this.db
       .update(refreshTokens)
       .set({ revoked: true, revokedAt: new Date() })
-      .where(eq(refreshTokens.token, tokenHash));
+      .where(eq(refreshTokens.tokenHash, tokenHash));
   }
 }

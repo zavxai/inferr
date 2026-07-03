@@ -3,14 +3,13 @@
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Newspaper, MessageSquare, LineChart, Sliders } from 'lucide-react';
+import { Newspaper, MessageSquare, Sliders } from 'lucide-react';
 import { ProfileMenu } from './ProfileMenu';
 import styles from './Navbar.module.css';
 
 const NAV_ITEMS = [
   { href: '/feed', label: 'Feed', icon: Newspaper },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/market', label: 'Tech Market', icon: LineChart, isNew: true },
 ];
 
 interface NavbarProps {
@@ -50,7 +49,6 @@ export function Navbar({ onEditInterests }: NavbarProps) {
                   className={`${styles.navLink} ${isActive ? styles.active : ''}`}
                 >
                   {item.label}
-                  {item.isNew && <span className={styles.newBadge}>new</span>}
                   {isActive && <span className={styles.activeGlow} />}
                 </Link>
               );

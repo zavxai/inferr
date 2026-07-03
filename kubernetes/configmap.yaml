@@ -16,3 +16,6 @@ data:
   GOOGLE_CALLBACK_URL: "http://api.inferr.local/auth/google/callback"
   GOOGLE_MCP_CALLBACK_URL: "http://api.inferr.local/auth/google/mcp-callback"
   API_URL: "https://api.inferr.local"
+  LANGFUSE_BASE_URL: "http://langfuse-service:3010"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector:4318/v1/traces"
+  OTEL_SERVICE_NAME: "inferr-api-k8s"

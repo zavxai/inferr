@@ -683,7 +683,6 @@ export class ScraperService {
               .update(articles)
               .set({
                 content: r.content,
-                contentScrapedAt: scrapedAt,
                 imageUrl: r.imageUrl,
               })
               .where(eq(articles.id, r.id)),

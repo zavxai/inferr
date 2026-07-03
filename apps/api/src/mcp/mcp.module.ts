@@ -5,10 +5,10 @@ import { ChatModule } from '../chat/chat.module';
 import { McpAuthModule } from './mcp-auth.module';
 import { McpService } from './mcp.service';
 import { McpController } from './mcp.controller';
-import { JobsModule } from '../jobs/jobs.module';
+
 
 @Module({
-  imports: [AiModule, FeedModule, ChatModule, McpAuthModule, JobsModule],
+  imports: [AiModule, FeedModule, ChatModule, McpAuthModule],
   providers: [McpService],
   controllers: [McpController],
 })

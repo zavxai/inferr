@@ -11,7 +11,6 @@ import type { DrizzleDB } from '../db/drizzle.provider';
 import { cronLocks, cronRuns } from '../db/schema';
 import { ScraperService } from '../scraper/scraper.service';
 import { AiService } from '../ai/ai.service';
-import { JobsService } from '../jobs/jobs.service';
 
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000; // 6 hours safety TTL for locks
 const CATCHUP_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 hours — run catchup if last success was longer ago
@@ -25,7 +24,6 @@ export class SchedulerService implements OnApplicationBootstrap {
     @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly scraperService: ScraperService,
     private readonly aiService: AiService,
-    private readonly jobsService: JobsService,
   ) {}
 
   // ──────────────────────────────────────────────
@@ -39,7 +37,6 @@ export class SchedulerService implements OnApplicationBootstrap {
   private async catchupMissedJobs(): Promise<void> {
     const jobDefs: { name: string; runner: () => Promise<void> }[] = [
       { name: 'runDailyScrape', runner: () => this.executeDailyScrape() },
-      { name: 'runDailyJobScrape', runner: () => this.executeDailyJobScrape() },
     ];
 
     for (const job of jobDefs) {
@@ -72,12 +69,7 @@ export class SchedulerService implements OnApplicationBootstrap {
   // Cron handlers
   // ──────────────────────────────────────────────
 
-  @Cron('0 2 * * *')
-  async runDailyJobScrape() {
-    await this.runWithLock('runDailyJobScrape', SIX_HOURS_MS, () =>
-      this.executeDailyJobScrape(),
-    );
-  }
+
 
   @Cron('30 1 * * *')
   async runDailyScrape() {
@@ -90,19 +82,7 @@ export class SchedulerService implements OnApplicationBootstrap {
   // Job implementations (with retry)
   // ──────────────────────────────────────────────
 
-  private async executeDailyJobScrape(): Promise<void> {
-    this.logger.log('Starting daily job scrape');
 
-    const saved = await this.withRetry('scrapeRemotive', () =>
-      this.jobsService.scrapeRemotive(),
-    );
-    this.logger.log(`Jobs scraped: ${saved} new listings`);
-
-    const report = await this.withRetry('generateMarketReport', () =>
-      this.jobsService.generateMarketReport(),
-    );
-    this.logger.log(`Market report refreshed: ${report.roles.length} roles`);
-  }
 
   private async executeDailyScrape(): Promise<void> {
     this.logger.log('Starting daily scrape pipeline');
