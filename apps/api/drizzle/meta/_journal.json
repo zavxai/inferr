@@ -127,6 +127,27 @@
       "when": 1782230000000,
       "tag": "0017_cron_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1782983821103,
+      "tag": "0018_burly_skullbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1782983821104,
+      "tag": "0019_rename_refresh_tokens_token",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1783072003077,
+      "tag": "0020_nosy_pride",
+      "breakpoints": true
     }
   ]
 }

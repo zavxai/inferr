@@ -30,6 +30,12 @@ spec:
         - name: api
           image: inferr-api:latest
           imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              sed -i 's/scheduler_module_1.SchedulerModule,//g' apps/api/dist/app.module.js
+              node apps/api/dist/main
           ports:
             - containerPort: 3001
               name: http

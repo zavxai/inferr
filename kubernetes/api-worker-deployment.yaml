@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-worker
+  namespace: default
+  labels:
+    app: api-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-worker
+  template:
+    metadata:
+      labels:
+        app: api-worker
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z -w 2 postgres-service 5432; do
+                echo "Waiting for postgres-service:5432..."
+                sleep 2
+              done
+      containers:
+        - name: api-worker
+          image: inferr-api:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: api-secrets

@@ -29,6 +29,8 @@ export interface EvaluationInput {
   context: EvaluationSource[];
   /** Optional: associate evaluation with a specific user for analytics. */
   userId?: string;
+  /** Optional: Langfuse trace ID of the user request. */
+  traceId?: string;
 }
 
 export interface MetricScores {

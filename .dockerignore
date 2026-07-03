@@ -11,3 +11,5 @@ apps/api/test
 bruno
 *.md
 docker-compose.yml
+data
+

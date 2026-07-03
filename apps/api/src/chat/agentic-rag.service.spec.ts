@@ -249,6 +249,19 @@ describe('AgenticRagService + ChatService (unit)', () => {
     expect(evalArg.answer).toContain('generated answer');
   });
 
+  it('passes traceId from Langfuse callback handler to evaluationsService if Langfuse is enabled', async () => {
+    mockLangfuseService.isEnabled.mockReturnValue(true);
+    mockLangfuseService.createCallbackHandler.mockReturnValue({
+      traceId: 't-test-id-123',
+    });
+
+    await agentic.query('u-eval', 'What is vector search?');
+
+    expect(mockEvaluations.evaluateAsync).toHaveBeenCalledTimes(1);
+    const evalArg = mockEvaluations.evaluateAsync.mock.calls[0][0];
+    expect(evalArg.traceId).toBe('t-test-id-123');
+  });
+
   it('still returns a result when EvaluationsService is not injected (@Optional)', async () => {
     // Build a separate module without providing EvaluationsService to confirm
     // the @Optional() decorator means the service degrades gracefully.

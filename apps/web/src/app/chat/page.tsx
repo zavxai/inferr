@@ -25,7 +25,6 @@ const SUGGESTIONS = [
   { text: "What's new in Rust this week?", icon: "🦀", desc: "Get semantic search updates on Rust" },
   { text: "Explain pgvector HNSW vs IVFFlat benchmarks", icon: "📊", desc: "Compare database vector indexes" },
   { text: "Summarise the top articles about AI and LLMs", icon: "✨", desc: "Read a quick digest of trending AI news" },
-  { text: "What skills are trending in the tech market?", icon: "🚀", desc: "Identify high-demand remote skills" },
 ];
 
 export default function ChatPage() {

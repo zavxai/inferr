@@ -5,8 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppController } from '../src/app.controller';
 import { AppService } from '../src/app.service';
-import { JobsController } from '../src/jobs/jobs.controller';
-import { JobsService, MarketReport, JobReport } from '../src/jobs/jobs.service';
+
 import { ScraperController } from '../src/scraper/scraper.controller';
 import { ScraperService, ScrapeResult } from '../src/scraper/scraper.service';
 import { AiService } from '../src/ai/ai.service';
@@ -67,18 +66,11 @@ describe('API E2E (isolated modules)', () => {
     });
   });
 
-  describe('Public + guarded jobs endpoints (JobsController + ScraperKeyGuard)', () => {
-    let jobsService: jest.Mocked<JobsService>;
+  describe('Public + guarded scraper endpoints (ScraperController + ScraperKeyGuard)', () => {
     let scraperService: jest.Mocked<ScraperService>;
     let aiService: jest.Mocked<AiService>;
 
     beforeEach(async () => {
-      jobsService = {
-        getMarketReport: jest.fn(),
-        getReport: jest.fn(),
-        scrapeRemotive: jest.fn(),
-        generateMarketReport: jest.fn(),
-      } as any;
 
       scraperService = {
         scrapeAll: jest.fn(),
@@ -91,9 +83,8 @@ describe('API E2E (isolated modules)', () => {
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [], // no full modules
-        controllers: [JobsController, ScraperController],
+        controllers: [ScraperController],
         providers: [
-          { provide: JobsService, useValue: jobsService },
           { provide: ScraperService, useValue: scraperService },
           { provide: AiService, useValue: aiService },
           // ScraperKeyGuard is instantiated by Nest when @UseGuards present; it reads process.env directly
@@ -109,22 +100,7 @@ describe('API E2E (isolated modules)', () => {
       await app.close();
     });
 
-    it('GET /jobs/market calls service and returns report', async () => {
-      const fake: MarketReport = { roles: [{ role: 'AI/ML', demand: 5, trend: 'Explosive' }], generatedAt: new Date().toISOString() };
-      jobsService.getMarketReport.mockResolvedValue(fake);
 
-      const res = await request(app.getHttpServer()).get('/jobs/market').expect(200);
-      expect(res.body).toEqual(fake);
-      expect(jobsService.getMarketReport).toHaveBeenCalled();
-    });
-
-    it('GET /jobs/report calls service and returns aggregates', async () => {
-      const fake: JobReport = { totalListings: 42, topSkills: [], roleBreakdown: [], topCompanies: [], generatedAt: new Date().toISOString() };
-      jobsService.getReport.mockResolvedValue(fake);
-
-      const res = await request(app.getHttpServer()).get('/jobs/report').expect(200);
-      expect(res.body.totalListings).toBe(42);
-    });
 
     it('POST /scraper/run requires SCRAPER_API_KEY and calls scraper + ai', async () => {
       const origKey = process.env.SCRAPER_API_KEY;
