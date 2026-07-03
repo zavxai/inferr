@@ -676,7 +676,6 @@ export class ScraperService {
       skipped += results.length - successful.length;
 
       if (successful.length > 0) {
-        const scrapedAt = new Date();
         await Promise.all(
           successful.map((r) =>
             this.db

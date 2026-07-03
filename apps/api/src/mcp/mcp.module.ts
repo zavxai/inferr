@@ -6,7 +6,6 @@ import { McpAuthModule } from './mcp-auth.module';
 import { McpService } from './mcp.service';
 import { McpController } from './mcp.controller';
 
-
 @Module({
   imports: [AiModule, FeedModule, ChatModule, McpAuthModule],
   providers: [McpService],

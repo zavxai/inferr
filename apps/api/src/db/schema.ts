@@ -166,8 +166,6 @@ export const userInterests = pgTable(
   ],
 );
 
-
-
 // -----------------------------------------------------------------------------
 // RAG Quality Telemetry (LLM-as-Judge)
 // Fire-and-forget scores written after /chat turns. Full question + answer are

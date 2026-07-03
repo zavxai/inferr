@@ -22,14 +22,12 @@ export class AuthService {
     return crypto.createHash('sha256').update(raw).digest('hex');
   }
 
-  async validateAndUpsertGoogleUser(
-    googleProfile: {
-      id: string;
-      displayName: string;
-      emails: { value: string }[];
-      photos: { value: string }[];
-    },
-  ): Promise<User> {
+  async validateAndUpsertGoogleUser(googleProfile: {
+    id: string;
+    displayName: string;
+    emails: { value: string }[];
+    photos: { value: string }[];
+  }): Promise<User> {
     return this.usersService.upsert(googleProfile);
   }
   async getUserById(id: string): Promise<User | null> {

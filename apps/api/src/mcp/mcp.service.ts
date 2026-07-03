@@ -12,7 +12,6 @@ import { AiService } from '../ai/ai.service';
 import { FeedService } from '../feed/feed.service';
 import { AgenticRagService } from '../chat/agentic-rag.service';
 
-
 @Injectable()
 export class McpService implements OnModuleDestroy {
   private readonly logger = new Logger(McpService.name);
@@ -129,8 +128,6 @@ export class McpService implements OnModuleDestroy {
         return { content: [{ type: 'text', text: result.answer + sources }] };
       },
     );
-
-
 
     return server;
   }

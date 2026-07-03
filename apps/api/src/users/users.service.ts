@@ -14,14 +14,12 @@ export class UsersService {
     private readonly aiService: AiService,
   ) {}
 
-  async upsert(
-    googleProfile: {
-      id: string;
-      displayName: string;
-      emails: { value: string }[];
-      photos: { value: string }[];
-    },
-  ): Promise<User> {
+  async upsert(googleProfile: {
+    id: string;
+    displayName: string;
+    emails: { value: string }[];
+    photos: { value: string }[];
+  }): Promise<User> {
     const email = googleProfile.emails[0]?.value || '';
     const avatar: string | null = googleProfile.photos[0]?.value || null;
 

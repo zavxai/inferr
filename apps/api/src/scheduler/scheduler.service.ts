@@ -69,8 +69,6 @@ export class SchedulerService implements OnApplicationBootstrap {
   // Cron handlers
   // ──────────────────────────────────────────────
 
-
-
   @Cron('30 1 * * *')
   async runDailyScrape() {
     await this.runWithLock('runDailyScrape', SIX_HOURS_MS, () =>
@@ -81,8 +79,6 @@ export class SchedulerService implements OnApplicationBootstrap {
   // ──────────────────────────────────────────────
   // Job implementations (with retry)
   // ──────────────────────────────────────────────
-
-
 
   private async executeDailyScrape(): Promise<void> {
     this.logger.log('Starting daily scrape pipeline');
