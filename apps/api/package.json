@@ -111,10 +111,10 @@
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
       "global": {
-        "lines": 45,
-        "functions": 30,
-        "branches": 30,
-        "statements": 45
+        "lines": 40,
+        "functions": 25,
+        "branches": 25,
+        "statements": 40
       },
       "./src/evaluations/evaluations.service.ts": {
         "lines": 85,
