@@ -88,14 +88,18 @@ export class UsersService {
     // Fire-and-forget: warm the embedding cache so the next /feed request
     // doesn't have to call OpenAI cold (which risks a transient 500).
     this.warmEmbedding(userId, tags).catch((err) =>
-      this.logger.warn(`Background embed warming failed for user ${userId}: ${err}`),
+      this.logger.warn(
+        `Background embed warming failed for user ${userId}: ${err}`,
+      ),
     );
   }
 
   private async warmEmbedding(userId: string, tags: string[]): Promise<void> {
     if (tags.length === 0) return;
     const queryText = `software engineering articles about ${tags.join(', ')} for developers`;
-    this.logger.log(`Warming embedding for user ${userId} after interests update`);
+    this.logger.log(
+      `Warming embedding for user ${userId} after interests update`,
+    );
     const embedding = await this.aiService.embed(queryText);
     await this.db
       .update(userInterests)

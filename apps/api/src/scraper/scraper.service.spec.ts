@@ -227,4 +227,17 @@ describe('ScraperService (unit)', () => {
     expect(mockDb.delete).toHaveBeenCalled();
     expect(count).toBe(1);
   });
+
+  it('cleanOldArticles with no arguments performs age-based pruning and returns count', async () => {
+    mockDb.delete.mockReturnValueOnce({
+      where: jest.fn(() => ({
+        returning: jest.fn(() => Promise.resolve([{ id: 'stale-art' }])),
+      })),
+    });
+
+    const count = await service.cleanOldArticles();
+
+    expect(mockDb.delete).toHaveBeenCalled();
+    expect(count).toBe(1);
+  });
 });

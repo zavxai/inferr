@@ -15,13 +15,16 @@ export class AiService {
   constructor(@Inject(DRIZZLE) private db: DrizzleDB) {
     const rawClient = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       fetch: globalThis.fetch as any,
     });
     if (process.env.LANGFUSE_PUBLIC_KEY && process.env.LANGFUSE_SECRET_KEY) {
       this.logger.log('Wrapping OpenAI client with Langfuse observer.');
       this.client = observeOpenAI(rawClient);
     } else {
-      this.logger.log('Using raw OpenAI client (Langfuse disabled/keys missing).');
+      this.logger.log(
+        'Using raw OpenAI client (Langfuse disabled/keys missing).',
+      );
       this.client = rawClient;
     }
   }
@@ -93,9 +96,7 @@ export class AiService {
         return this.embedWithRetry(text, maxAttempts, attempt + 1);
       }
 
-      this.logger.error(
-        `embed() failed after ${attempt} attempt(s): ${msg}`,
-      );
+      this.logger.error(`embed() failed after ${attempt} attempt(s): ${msg}`);
       throw err;
     }
   }
