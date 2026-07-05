@@ -62,7 +62,7 @@ interface RagState {
 }
 
 const MAX_ITERATIONS = 2;
-const RETRIEVAL_K = 6;
+const RETRIEVAL_K = 8;
 
 const RelevanceSchema = z.object({
   relevant_doc_indices: z

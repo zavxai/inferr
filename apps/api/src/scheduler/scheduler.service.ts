@@ -95,9 +95,9 @@ export class SchedulerService implements OnApplicationBootstrap {
     this.logger.log(`Summarized/embedded: ${processed} ok, ${failed} failed`);
 
     const cleaned = await this.withRetry('cleanOldArticles', () =>
-      this.scraperService.cleanOldArticles(100),
+      this.scraperService.cleanOldArticles(),
     );
-    this.logger.log(`Pruned database to keep only ${cleaned} articles`);
+    this.logger.log(`Pruned ${cleaned} articles past retention window`);
   }
 
   // ──────────────────────────────────────────────

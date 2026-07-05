@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as cheerio from 'cheerio';
-import { eq, desc, not, inArray } from 'drizzle-orm';
+import { eq, desc, not, inArray, lt } from 'drizzle-orm';
 import { DRIZZLE } from '../db/drizzle.provider';
 import type { DrizzleDB } from '../db/drizzle.provider';
 import { articles, NewArticle, userInterests } from '../db/schema';
@@ -70,6 +70,14 @@ interface GitHubSearchResponse {
 const CONTENT_MAX_CHARS = 8000;
 const FETCH_TIMEOUT_MS = 10_000;
 const CONTENT_CONCURRENCY = 5;
+
+/**
+ * Age-based retention for the article corpus.
+ * We keep articles for this window so that semantic search, ask_inferr (RAG),
+ * and MCP tools have a useful body of knowledge instead of only the last ~100 items.
+ * The personalized feed applies its own much stricter recency filter at query time.
+ */
+const ARTICLE_RETENTION_DAYS = 45;
 
 @Injectable()
 export class ScraperService {
@@ -145,8 +153,10 @@ export class ScraperService {
     // Fetch full page content for new articles
     const content = await this.scrapeContentForArticles(newArticles);
 
-    // Prune the database to keep only the 100 most recent articles overall
-    await this.cleanOldArticles(100);
+    // Prune using the retention policy.
+    // Age-based retention builds a meaningful corpus for RAG, search_articles,
+    // and ask_inferr. The /feed endpoint does its own 1-day recency filter.
+    await this.cleanOldArticles();
 
     return {
       hn: hn.length,
@@ -155,25 +165,55 @@ export class ScraperService {
     };
   }
 
-  async cleanOldArticles(limit = 100): Promise<number> {
-    this.logger.log(
-      `Pruning database to keep only the ${limit} most recent articles...`,
-    );
-    const recent = await this.db
-      .select({ id: articles.id })
-      .from(articles)
-      .orderBy(desc(articles.createdAt))
-      .limit(limit);
+  /**
+   * Removes stale articles from the corpus.
+   *
+   * Default behavior (recommended): age-based retention using ARTICLE_RETENTION_DAYS.
+   * This is what keeps a healthy body of articles for semantic search + RAG.
+   *
+   * Pass a positive keepCount to use the old "keep only the N newest" strategy
+   * (used by some tests and the manual /scraper/run trigger if desired).
+   */
+  async cleanOldArticles(keepCount?: number): Promise<number> {
+    if (keepCount && keepCount > 0) {
+      // Legacy keep-N mode (mainly for tests / manual one-off calls)
+      this.logger.log(
+        `Pruning database to keep only the ${keepCount} most recent articles (legacy keep-N mode)...`,
+      );
+      const recent = await this.db
+        .select({ id: articles.id })
+        .from(articles)
+        .orderBy(desc(articles.createdAt))
+        .limit(keepCount);
 
-    const recentIds = recent.map((a) => a.id);
-    if (recentIds.length === 0) return 0;
+      const recentIds = recent.map((a) => a.id);
+      if (recentIds.length === 0) return 0;
+
+      const deleted = await this.db
+        .delete(articles)
+        .where(not(inArray(articles.id, recentIds)))
+        .returning({ id: articles.id });
+
+      this.logger.log(`Pruned ${deleted.length} older articles.`);
+      return deleted.length;
+    }
+
+    // Default: age-based pruning. This is the key fix for corpus size.
+    const cutoff = new Date(
+      Date.now() - ARTICLE_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    );
+    this.logger.log(
+      `Pruning articles older than ${ARTICLE_RETENTION_DAYS} days (cutoff=${cutoff.toISOString()})...`,
+    );
 
     const deleted = await this.db
       .delete(articles)
-      .where(not(inArray(articles.id, recentIds)))
+      .where(lt(articles.createdAt, cutoff))
       .returning({ id: articles.id });
 
-    this.logger.log(`Pruned ${deleted.length} older articles.`);
+    this.logger.log(
+      `Pruned ${deleted.length} articles past the retention window.`,
+    );
     return deleted.length;
   }
 
