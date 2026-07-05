@@ -221,6 +221,7 @@ export class AgenticRagService {
       iterations: 0,
     };
 
+    let traceId: string | undefined = undefined;
     const config: { callbacks?: any[] } = {};
     if (this.langfuseService.isEnabled()) {
       const handler = this.langfuseService.createCallbackHandler({
@@ -234,6 +235,8 @@ export class AgenticRagService {
       });
       if (handler) {
         config.callbacks = [handler];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        traceId = handler.traceId as string | undefined;
       }
     }
 
@@ -262,6 +265,7 @@ export class AgenticRagService {
           answer: finalState.answer?.trim() ?? '',
           context: contextForEval,
           userId,
+          traceId,
         },
         (result) => {
           this.logger.debug(

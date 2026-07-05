@@ -32,7 +32,12 @@ export class UsersService {
     if (existing.length > 0) {
       const [updated] = await this.db
         .update(users)
-        .set({ email, name: googleProfile.displayName, avatar })
+        .set({
+          email,
+          name: googleProfile.displayName,
+          avatar,
+          updatedAt: new Date(),
+        })
         .where(eq(users.googleId, googleProfile.id))
         .returning();
       return updated;
@@ -82,7 +87,7 @@ export class UsersService {
       .values({ userId, tags, queryEmbedding: null })
       .onConflictDoUpdate({
         target: userInterests.userId,
-        set: { tags, queryEmbedding: null },
+        set: { tags, queryEmbedding: null, updatedAt: new Date() },
       });
 
     // Fire-and-forget: warm the embedding cache so the next /feed request
@@ -103,7 +108,7 @@ export class UsersService {
     const embedding = await this.aiService.embed(queryText);
     await this.db
       .update(userInterests)
-      .set({ queryEmbedding: embedding })
+      .set({ queryEmbedding: embedding, updatedAt: new Date() })
       .where(eq(userInterests.userId, userId));
     this.logger.log(`Embedding warmed for user ${userId}`);
   }

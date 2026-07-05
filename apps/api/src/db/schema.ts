@@ -8,7 +8,6 @@ import {
   text,
   boolean,
   jsonb,
-  bigint,
   real,
 } from 'drizzle-orm/pg-core';
 
@@ -27,6 +26,21 @@ const vector = (name: string, dimensions: number) =>
     },
   })(name);
 
+/**
+ * ============================================================================
+ * INFER R DATABASE SCHEMA
+ * ============================================================================
+ * - All columns use snake_case (Drizzle column name in backticks).
+ * - Vector columns use pgvector (1536 dims for text-embedding-3-small).
+ * - Token storage: only ever store SHA-256 hashes of opaque tokens.
+ * - MCP tables are completely separate from web auth tables (different trust model).
+ * - This file is the source of truth. Indexes declared here should match applied
+ *   migrations. Use `npm run db:generate` to create forward migrations only.
+ */
+
+// -----------------------------------------------------------------------------
+// Core Identity
+// -----------------------------------------------------------------------------
 export const users = pgTable(
   'users',
   {
@@ -36,6 +50,7 @@ export const users = pgTable(
     name: varchar('name', { length: 255 }).notNull(),
     avatar: varchar('avatar', { length: 2048 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => [
     index('users_google_id_idx').on(t.googleId),
@@ -43,6 +58,11 @@ export const users = pgTable(
   ],
 );
 
+// -----------------------------------------------------------------------------
+// Content Corpus (Articles + RAG source of truth)
+// Articles are globally shared. Personalization happens at query time via
+// user interests + vector similarity + tag boosting.
+// -----------------------------------------------------------------------------
 export const articles = pgTable(
   'articles',
   {
@@ -51,20 +71,32 @@ export const articles = pgTable(
     url: varchar('url', { length: 2048 }).notNull().unique(),
     source: varchar('source', { length: 255 }).notNull(),
     content: text('content'),
-    contentScrapedAt: timestamp('content_scraped_at'),
     summary: text('summary'),
     embedding: vector('embedding', 1536),
     tags: text('tags').array().notNull().default([]),
     publishedAt: timestamp('published_at'),
     imageUrl: varchar('image_url', { length: 2048 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at'),
   },
   (t) => [
     index('articles_source_idx').on(t.source),
     index('articles_published_at_idx').on(t.publishedAt),
+    // HNSW index for fast cosine similarity (<=>) used by feed + chat RAG.
+    // Matches the index created in migration 0003.
+    index('articles_embedding_hnsw_idx').using(
+      'hnsw',
+      t.embedding.op('vector_cosine_ops'),
+    ),
   ],
 );
 
+// -----------------------------------------------------------------------------
+// Web Auth - Refresh Tokens (opaque, rotated, hashed)
+// Note: the `tokenHash` column stores SHA-256(raw token). The raw value is
+// only ever sent to the browser in an httpOnly cookie.
+// Rotation + reuse detection nukes chains on suspected theft.
+// -----------------------------------------------------------------------------
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
@@ -72,16 +104,21 @@ export const refreshTokens = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    token: varchar('token', { length: 255 }).notNull().unique(),
+    tokenHash: varchar('token_hash', { length: 255 }).notNull().unique(),
     expiresAt: timestamp('expires_at').notNull(),
     revoked: boolean('revoked').notNull().default(false),
     revokedAt: timestamp('revoked_at'),
     replacedByHash: varchar('replaced_by_hash', { length: 255 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (t) => [index('refresh_tokens_token_idx').on(t.token)],
+  (t) => [index('refresh_tokens_token_hash_idx').on(t.tokenHash)],
 );
 
+// -----------------------------------------------------------------------------
+// MCP Auth - Tokens (separate lifecycle and secret space from web refresh)
+// Access tokens are short-lived JWTs (type: mcp_access). Refresh tokens are
+// opaque + hashed here. Reuse detection revokes *all* tokens for the user.
+// -----------------------------------------------------------------------------
 export const mcpTokens = pgTable(
   'mcp_tokens',
   {
@@ -102,53 +139,39 @@ export const mcpTokens = pgTable(
   ],
 );
 
-export const userInterests = pgTable('user_interests', {
-  userId: uuid('user_id')
-    .primaryKey()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  tags: text('tags').array().notNull().default([]),
-  queryEmbedding: vector('query_embedding', 1536),
-});
-
-export const jobs = pgTable(
-  'jobs',
+// -----------------------------------------------------------------------------
+// Personalization Profile (1:1 with users)
+// Stores the user's chosen interest tags + a cached embedding of a rich query
+// derived from those tags. Used for personalized feed ranking + RAG context.
+// This is deliberately a separate table today for easy upsert + future extension
+// (e.g. more profile fields, interest history). Consider folding into users if
+// it stays this small.
+// -----------------------------------------------------------------------------
+export const userInterests = pgTable(
+  'user_interests',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    externalId: varchar('external_id', { length: 255 }).notNull().unique(),
-    title: varchar('title', { length: 500 }).notNull(),
-    url: varchar('url', { length: 2048 }).notNull(),
-    company: varchar('company', { length: 255 }),
-    category: varchar('category', { length: 255 }),
+    userId: uuid('user_id')
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
     tags: text('tags').array().notNull().default([]),
-    jobType: varchar('job_type', { length: 100 }),
-    location: varchar('location', { length: 255 }),
-    salary: varchar('salary', { length: 255 }),
-    publishedAt: timestamp('published_at'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    queryEmbedding: vector('query_embedding', 1536),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => [
-    index('jobs_category_idx').on(t.category),
-    index('jobs_published_at_idx').on(t.publishedAt),
+    // Optional but useful for future direct similarity on a user's interest vector
+    index('user_interests_query_embedding_hnsw_idx').using(
+      'hnsw',
+      t.queryEmbedding.op('vector_cosine_ops'),
+    ),
   ],
 );
 
-export const marketReports = pgTable('market_reports', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  roles: jsonb('roles')
-    .$type<{ role: string; demand: number; trend: string }[]>()
-    .notNull(),
-  generatedAt: timestamp('generated_at').defaultNow().notNull(),
-});
-
-/**
- * Stores LLM-as-judge evaluation scores for every RAG response.
- * Written fire-and-forget by AgenticRagService after each query().
- *
- * Metrics (all 0–1, higher = better):
- *   faithfulness     — answer grounded in retrieved context
- *   answer_relevance — answer addresses the question
- *   context_recall   — retrieved context had the needed information
- */
+// -----------------------------------------------------------------------------
+// RAG Quality Telemetry (LLM-as-Judge)
+// Fire-and-forget scores written after /chat turns. Full question + answer are
+// stored for debugging (can become large; consider TTL or offloading to
+// Langfuse long-term).
+// -----------------------------------------------------------------------------
 export const aiEvaluations = pgTable(
   'ai_evaluations',
   {
@@ -180,13 +203,15 @@ export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 export type McpToken = typeof mcpTokens.$inferSelect;
 export type NewMcpToken = typeof mcpTokens.$inferInsert;
-export type Job = typeof jobs.$inferSelect;
-export type NewJob = typeof jobs.$inferInsert;
-export type MarketReportRow = typeof marketReports.$inferSelect;
-export type NewMarketReportRow = typeof marketReports.$inferInsert;
+
 export type AiEvaluation = typeof aiEvaluations.$inferSelect;
 export type NewAiEvaluation = typeof aiEvaluations.$inferInsert;
 
+// -----------------------------------------------------------------------------
+// MCP OAuth 2.1 State (PKCE + client registry + pending codes)
+// These are short-lived. Cleanup runs on a timer in McpOAuthProvider.
+// NOTE: expiresAt is a proper timestamp (was historically bigint unix ms).
+// -----------------------------------------------------------------------------
 export const mcpClients = pgTable('mcp_clients', {
   clientId: varchar('client_id', { length: 255 }).primaryKey(),
   clientInfo: jsonb('client_info').notNull(),
@@ -200,7 +225,7 @@ export const pendingMcpAuthorizations = pgTable('pending_mcp_authorizations', {
   redirectUri: varchar('redirect_uri', { length: 2048 }).notNull(),
   scopes: text('scopes').array().notNull().default([]),
   clientState: varchar('client_state', { length: 2048 }),
-  expiresAt: bigint('expires_at', { mode: 'number' }).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -212,7 +237,7 @@ export const pendingAuthCodes = pgTable('pending_auth_codes', {
   clientId: varchar('client_id', { length: 255 }).notNull(),
   codeChallenge: varchar('code_challenge', { length: 255 }).notNull(),
   redirectUri: varchar('redirect_uri', { length: 2048 }).notNull(),
-  expiresAt: bigint('expires_at', { mode: 'number' }).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -225,6 +250,11 @@ export type NewMcpPendingAuthorization =
 export type McpPendingAuthCode = typeof pendingAuthCodes.$inferSelect;
 export type NewMcpPendingAuthCode = typeof pendingAuthCodes.$inferInsert;
 
+// -----------------------------------------------------------------------------
+// Operations - Distributed Locking + Execution Audit
+// cron_locks uses existence + job_name PK as a simple advisory lock.
+// cron_runs is an append-only history table used for catch-up decisions.
+// -----------------------------------------------------------------------------
 export const cronLocks = pgTable('cron_locks', {
   jobName: varchar('job_name', { length: 255 }).primaryKey(),
   lockedAt: timestamp('locked_at').notNull().defaultNow(),

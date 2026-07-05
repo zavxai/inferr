@@ -77,7 +77,7 @@ export class McpOAuthProvider
 
   private async cleanupExpired() {
     try {
-      const now = Date.now();
+      const now = new Date();
       await this.db
         .delete(pendingMcpAuthorizations)
         .where(lt(pendingMcpAuthorizations.expiresAt, now));
@@ -141,7 +141,7 @@ export class McpOAuthProvider
       redirectUri: params.redirectUri,
       scopes: params.scopes ?? ['mcp'],
       clientState: params.state,
-      expiresAt: Date.now() + PENDING_TTL_MS,
+      expiresAt: new Date(Date.now() + PENDING_TTL_MS),
     });
 
     // Carry our internal state through Google's opaque `state` param. We only
@@ -166,7 +166,7 @@ export class McpOAuthProvider
       .limit(1);
 
     const pending = rows[0];
-    if (!pending || pending.expiresAt < Date.now()) {
+    if (!pending || pending.expiresAt < new Date()) {
       throw new Error('Unknown or expired MCP authorization state');
     }
 
@@ -181,7 +181,7 @@ export class McpOAuthProvider
       clientId: pending.clientId,
       codeChallenge: pending.codeChallenge,
       redirectUri: pending.redirectUri,
-      expiresAt: Date.now() + PENDING_TTL_MS,
+      expiresAt: new Date(Date.now() + PENDING_TTL_MS),
     });
 
     return {
@@ -202,7 +202,7 @@ export class McpOAuthProvider
       .limit(1);
 
     const pending = rows[0];
-    if (!pending || pending.expiresAt < Date.now()) {
+    if (!pending || pending.expiresAt < new Date()) {
       throw new Error('Invalid or expired authorization code');
     }
     // The SDK verifies the PKCE code_verifier against this challenge for us.
@@ -220,7 +220,7 @@ export class McpOAuthProvider
       .limit(1);
 
     const pending = rows[0];
-    if (!pending || pending.expiresAt < Date.now()) {
+    if (!pending || pending.expiresAt < new Date()) {
       throw new Error('Invalid or expired authorization code');
     }
     if (pending.clientId !== client.client_id) {

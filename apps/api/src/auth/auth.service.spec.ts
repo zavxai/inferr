@@ -24,6 +24,7 @@ describe('AuthService (unit)', () => {
     googleId: 'g-123',
     avatar: null,
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeAll(() => {
@@ -123,7 +124,7 @@ describe('AuthService (unit)', () => {
       expect(insertCall.values).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'u-123',
-          token: expect.any(String), // the hash
+          tokenHash: expect.any(String), // the hash
           expiresAt: expect.any(Date),
         }),
       );
@@ -154,7 +155,7 @@ describe('AuthService (unit)', () => {
             limit: () =>
               Promise.resolve([
                 {
-                  token: 'h',
+                  tokenHash: 'h',
                   userId: 'u-123',
                   revoked: false,
                   expiresAt: past,
@@ -181,7 +182,7 @@ describe('AuthService (unit)', () => {
               Promise.resolve([
                 {
                   id: 'rt-1',
-                  token: 'oldhash',
+                  tokenHash: 'oldhash',
                   userId: 'u-123',
                   revoked: false,
                   expiresAt: future,
@@ -225,7 +226,7 @@ describe('AuthService (unit)', () => {
               limit: () =>
                 Promise.resolve([
                   {
-                    token: 'revokedhash1',
+                    tokenHash: 'revokedhash1',
                     userId: 'u-123',
                     revoked: true,
                     revokedAt: recently,
@@ -243,7 +244,7 @@ describe('AuthService (unit)', () => {
               limit: () =>
                 Promise.resolve([
                   {
-                    token: 'hash2',
+                    tokenHash: 'hash2',
                     userId: 'u-123',
                     revoked: false,
                     revokedAt: null,
@@ -276,7 +277,7 @@ describe('AuthService (unit)', () => {
             limit: () =>
               Promise.resolve([
                 {
-                  token: 'oldrevoked',
+                  tokenHash: 'oldrevoked',
                   userId: 'u-123',
                   revoked: true,
                   revokedAt: oldRevoke,

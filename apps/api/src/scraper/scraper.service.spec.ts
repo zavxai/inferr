@@ -131,7 +131,9 @@ describe('ScraperService (unit)', () => {
     expect(mockDb.update).toHaveBeenCalled();
     // The set() was called on the builder returned by the update() call that happened inside saveArticles
     const updateCall = mockDb.update.mock.results[0]?.value;
-    expect(updateCall?.set).toHaveBeenCalledWith({ tags: ['newtag'] });
+    expect(updateCall?.set).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: ['newtag'] }),
+    );
   });
 
   it('fetchContent strips noise, falls back through article/main/p, truncates, returns null on failure', async () => {

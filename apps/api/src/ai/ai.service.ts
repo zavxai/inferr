@@ -13,10 +13,21 @@ export class AiService {
   private readonly client: OpenAI;
 
   constructor(@Inject(DRIZZLE) private db: DrizzleDB) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      this.logger.warn(
+        'OPENAI_API_KEY is not set — embeddings and chat will fail.',
+      );
+    }
     const rawClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      fetch: globalThis.fetch as any,
+      apiKey,
+      // Let the SDK use its internal fetch implementation (more reliable
+      // across environments than forcing globalThis.fetch in some containers).
+      // Previously we overrode with globalThis.fetch to work around issues;
+      // if you see "fetch not found" errors on startup you can re-add:
+      // fetch: globalThis.fetch as any,
+      timeout: 30000,
+      maxRetries: 2,
     });
     if (process.env.LANGFUSE_PUBLIC_KEY && process.env.LANGFUSE_SECRET_KEY) {
       this.logger.log('Wrapping OpenAI client with Langfuse observer.');
