@@ -6,8 +6,12 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { API_BASE as API_URL, useAuth } from '@/src/lib/auth-context'
 
-const GITHUB_URL = 'https://github.com/johnvesslyalti/ai-developer-feed'
+const PORTFOLIO_URL = 'https://johnvesslyalti.xyz'
+const GITHUB_PROFILE_URL = 'https://github.com/johnvesslyalti'
+const GITHUB_REPO_URL = 'https://github.com/johnvesslyalti/inferr'
 const X_URL = 'https://x.com/zavxai'
+const LINKEDIN_URL = 'https://www.linkedin.com/in/johnvesslyalti-ai-engineer'
+const EMAIL_URL = 'mailto:altijohnvessly@gmail.com'
 
 const features = [
   {
@@ -347,7 +351,15 @@ export default function Home() {
         <div className={styles.footerContent}>
           <span>Built by <a href={X_URL} target="_blank" rel="noopener noreferrer">@zavxai</a></span>
           <span className={styles.footerDot}>·</span>
-          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">Portfolio</a>
+          <span className={styles.footerDot}>·</span>
+          <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span className={styles.footerDot}>·</span>
+          <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <span className={styles.footerDot}>·</span>
+          <a href={EMAIL_URL} target="_blank" rel="noopener noreferrer">Email</a>
+          <span className={styles.footerDot}>·</span>
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">Source Code</a>
         </div>
       </footer>
 

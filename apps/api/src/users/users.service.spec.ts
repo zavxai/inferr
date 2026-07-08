@@ -65,7 +65,12 @@ describe('UsersService (unit)', () => {
   });
 
   it('findByGoogleId returns user when found', async () => {
-    const mockUser = { id: 'u-1', googleId: 'g-1', email: 'test@example.com', name: 'Test' };
+    const mockUser = {
+      id: 'u-1',
+      googleId: 'g-1',
+      email: 'test@example.com',
+      name: 'Test',
+    };
     mockDb.select.mockReturnValueOnce({
       from: jest.fn(() => ({
         where: jest.fn(() => ({
