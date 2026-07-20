@@ -1002,6 +1002,23 @@
   color: var(--accent);
 }
 
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.footerIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.footerSlash {
+  color: var(--border);
+  user-select: none;
+}
+
 .footerDot {
   color: var(--border);
 }
