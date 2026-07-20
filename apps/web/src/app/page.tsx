@@ -207,6 +207,31 @@ export default function Home() {
   return (
     <div className={styles.container}>
 
+      {/* Status Banner */}
+      <div className={styles.statusBanner}>
+        <div className={styles.statusBannerInner}>
+          <div className={styles.statusIndicator}>
+            <span className={styles.statusDot} />
+            <span className={styles.statusLabel}>Maintenance</span>
+          </div>
+          <p className={styles.statusText}>
+            Production is temporarily offline — database credits ran out and a fix is in progress.
+          </p>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.statusLink}
+          >
+            Follow progress on GitHub
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7 7 17 7 17 17" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
       {/* Navbar */}
       <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.navContent}>
@@ -215,14 +240,14 @@ export default function Home() {
             <span className={styles.logoText}>inferr</span>
           </div>
           <div className={styles.navRight}>
-            <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.signInBtn}>
-              Sign in with Google →
-            </a>
+            <span className={`${styles.signInBtn} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+              Sign in with Google
+            </span>
           </div>
         </div>
       </nav>
 
-      {/* Hero — split layout */}
+      {/* Hero - split layout */}
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.sectionInner}>
@@ -239,9 +264,9 @@ export default function Home() {
                 and surfaces only what&apos;s relevant to your stack — automatically.
               </p>
               <div className={`${styles.heroActions} reveal`}>
-                <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.primaryBtn}>
-                  Sign in with Google →
-                </a>
+                <span className={`${styles.primaryBtn} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+                  Sign in with Google
+                </span>
               </div>
               <p className={`${styles.heroNote} reveal`}>Free during early access. No credit card.</p>
             </div>
@@ -339,9 +364,9 @@ export default function Home() {
             Free. Takes 30 seconds to set up.
           </p>
           <div className="reveal">
-            <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.primaryBtnLight}>
-              Sign in with Google →
-            </a>
+            <span className={`${styles.primaryBtnLight} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+              Sign in with Google
+            </span>
           </div>
         </div>
       </section>
