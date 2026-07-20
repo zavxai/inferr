@@ -6,12 +6,9 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { API_BASE as API_URL, useAuth } from '@/src/lib/auth-context'
 
-const PORTFOLIO_URL = 'https://johnvesslyalti.xyz'
-const GITHUB_PROFILE_URL = 'https://github.com/johnvesslyalti'
-const GITHUB_REPO_URL = 'https://github.com/johnvesslyalti/inferr'
+const GITHUB_PROFILE_URL = 'https://github.com/zavxai'
+const GITHUB_REPO_URL = 'https://github.com/zavxai/inferr'
 const X_URL = 'https://x.com/zavxai'
-const LINKEDIN_URL = 'https://www.linkedin.com/in/johnvesslyalti-ai-engineer'
-const EMAIL_URL = 'mailto:altijohnvessly@gmail.com'
 
 const features = [
   {
@@ -207,6 +204,31 @@ export default function Home() {
   return (
     <div className={styles.container}>
 
+      {/* Status Banner */}
+      <div className={styles.statusBanner}>
+        <div className={styles.statusBannerInner}>
+          <div className={styles.statusIndicator}>
+            <span className={styles.statusDot} />
+            <span className={styles.statusLabel}>Maintenance</span>
+          </div>
+          <p className={styles.statusText}>
+            Production is temporarily offline — database credits ran out and a fix is in progress.
+          </p>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.statusLink}
+          >
+            Follow progress on GitHub
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7 7 17 7 17 17" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
       {/* Navbar */}
       <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.navContent}>
@@ -215,14 +237,14 @@ export default function Home() {
             <span className={styles.logoText}>inferr</span>
           </div>
           <div className={styles.navRight}>
-            <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.signInBtn}>
-              Sign in with Google →
-            </a>
+            <span className={`${styles.signInBtn} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+              Sign in with Google
+            </span>
           </div>
         </div>
       </nav>
 
-      {/* Hero — split layout */}
+      {/* Hero - split layout */}
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.sectionInner}>
@@ -239,9 +261,9 @@ export default function Home() {
                 and surfaces only what&apos;s relevant to your stack — automatically.
               </p>
               <div className={`${styles.heroActions} reveal`}>
-                <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.primaryBtn}>
-                  Sign in with Google →
-                </a>
+                <span className={`${styles.primaryBtn} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+                  Sign in with Google
+                </span>
               </div>
               <p className={`${styles.heroNote} reveal`}>Free during early access. No credit card.</p>
             </div>
@@ -339,9 +361,9 @@ export default function Home() {
             Free. Takes 30 seconds to set up.
           </p>
           <div className="reveal">
-            <a href={`${API_URL}/auth/google`} onClick={handleSignIn} className={styles.primaryBtnLight}>
-              Sign in with Google →
-            </a>
+            <span className={`${styles.primaryBtnLight} ${styles.btnDisabled}`} title="Unavailable while maintenance is in progress">
+              Sign in with Google
+            </span>
           </div>
         </div>
       </section>
@@ -349,17 +371,21 @@ export default function Home() {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <span>Built by <a href={X_URL} target="_blank" rel="noopener noreferrer">@zavxai</a></span>
+          <a href={X_URL} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+            <svg className={styles.footerIcon} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
+            </svg>
+            <span className={styles.footerSlash}>/</span>
+            <span>zavxai</span>
+          </a>
           <span className={styles.footerDot}>·</span>
-          <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">Portfolio</a>
-          <span className={styles.footerDot}>·</span>
-          <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
-          <span className={styles.footerDot}>·</span>
-          <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <span className={styles.footerDot}>·</span>
-          <a href={EMAIL_URL} target="_blank" rel="noopener noreferrer">Email</a>
-          <span className={styles.footerDot}>·</span>
-          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">Source Code</a>
+          <a href={GITHUB_PROFILE_URL} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+            <svg className={styles.footerIcon} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+            <span className={styles.footerSlash}>/</span>
+            <span>zavxai</span>
+          </a>
         </div>
       </footer>
 
