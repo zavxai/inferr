@@ -68,7 +68,6 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  flex-wrap: wrap;
 }
 
 .statusIndicator {
@@ -102,6 +101,8 @@
   color: var(--text-secondary);
   flex: 1;
   min-width: 0;
+  line-height: 1.45;
+  margin: 0;
 }
 
 .statusLink {
@@ -126,9 +127,48 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
-@media (max-width: 600px) {
-  .statusBanner { padding: 0.6rem 1.25rem; }
-  .statusText { font-size: 0.75rem; }
+/* Mobile: stack badge + link on one row, message below */
+@media (max-width: 720px) {
+  .statusBanner {
+    padding: 0.75rem 1rem;
+  }
+
+  .statusBannerInner {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .statusIndicator {
+    order: 1;
+  }
+
+  .statusLink {
+    order: 2;
+    margin-left: auto;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+  }
+
+  .statusText {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 400px) {
+  .statusBanner {
+    padding: 0.7rem 0.875rem;
+  }
+
+  .statusLink {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* ===== NAVBAR ===== */
