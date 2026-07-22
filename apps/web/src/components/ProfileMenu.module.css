@@ -2,7 +2,6 @@
   position: relative;
 }
 
-/* ── trigger button (avatar/initials) ── */
 .trigger {
   background: none;
   border: none;
@@ -12,11 +11,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease;
 }
 
 .trigger:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .trigger:focus-visible {
@@ -34,36 +33,36 @@
 .avatar {
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid rgba(0, 201, 167, 0.3);
+  border: 1.5px solid var(--border-strong);
 }
 
 .skeleton {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-tertiary);
   display: block;
   animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.45; }
 }
 
 .initials {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00C9A7, #008f75);
-  color: #000;
+  background: var(--ink);
+  color: var(--on-ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  border: 1.5px solid rgba(0, 201, 167, 0.3);
+  font-family: var(--font-body);
+  border: 1.5px solid var(--border-strong);
 }
 
 .onlineDot {
@@ -73,65 +72,60 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background-color: var(--accent);
+  background-color: var(--olive);
   border: 2px solid var(--bg-primary);
-  box-shadow: 0 0 6px var(--accent);
+  box-shadow: none;
 }
 
-/* ── dropdown ── */
 .dropdown {
   position: absolute;
   right: 0;
   top: calc(100% + 12px);
-  width: 230px;
-  background: rgba(15, 15, 15, 0.9);
-  border: 1px solid rgba(0, 201, 167, 0.2);
-  border-radius: 12px;
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(0, 201, 167, 0.05);
+  width: 240px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   z-index: 100;
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: none;
+  animation: fadeIn 0.18s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── user info header ── */
 .userInfo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
 }
 
 .dropAvatar {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1.5px solid rgba(0, 201, 167, 0.3);
+  border: 1.5px solid var(--border);
 }
 
 .dropInitials {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00C9A7, #008f75);
-  color: #000;
+  background: var(--ink);
+  color: var(--on-ink);
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-family: var(--font-mono);
-  border: 1.5px solid rgba(0, 201, 167, 0.3);
+  font-family: var(--font-body);
+  border: 1.5px solid var(--border);
 }
 
 .userDetails {
@@ -140,7 +134,7 @@
 }
 
 .userName {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -150,7 +144,7 @@
 }
 
 .userEmail {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin: 0.1rem 0 0;
   white-space: nowrap;
@@ -158,34 +152,32 @@
   text-overflow: ellipsis;
 }
 
-/* ── divider ── */
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border);
   margin: 0;
 }
 
-/* ── nav items ── */
 .item {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   padding: 0.75rem 1rem;
-  font-size: 0.825rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: background 0.12s ease, color 0.12s ease;
   font-family: var(--font-body);
 }
 
 .item:hover {
-  background: rgba(0, 201, 167, 0.05);
-  color: var(--accent-light);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .itemIcon {
   opacity: 0.7;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.12s ease;
   flex-shrink: 0;
 }
 
@@ -193,7 +185,6 @@
   opacity: 1;
 }
 
-/* When .item is a <button> */
 .itemButton {
   width: 100%;
   text-align: left;
@@ -203,9 +194,9 @@
 }
 
 .itemActive {
-  color: var(--accent-light);
+  color: var(--accent-dark);
   font-weight: 600;
-  background: linear-gradient(90deg, rgba(0, 201, 167, 0.08) 0%, rgba(0, 201, 167, 0.02) 100%);
+  background: var(--accent-soft);
   border-left: 2px solid var(--accent);
   padding-left: calc(1rem - 2px);
 }
@@ -214,7 +205,6 @@
   opacity: 1;
 }
 
-/* ── sign out ── */
 .signOut {
   width: 100%;
   text-align: left;
@@ -222,18 +212,17 @@
   align-items: center;
   gap: 0.65rem;
   padding: 0.75rem 1rem;
-  font-size: 0.825rem;
-  color: #f87171;
+  font-size: 0.85rem;
+  color: var(--danger);
   background: none;
   border: none;
   cursor: pointer;
   font-family: var(--font-body);
-  transition: all 0.15s ease;
+  transition: background 0.12s ease;
 }
 
 .signOut:hover {
-  background: rgba(239, 68, 68, 0.06);
-  color: #ef4444;
+  background: var(--danger-soft);
 }
 
 .signOut .itemIcon {
@@ -249,8 +238,8 @@
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: var(--on-ink);
+  background: var(--accent);
   border-radius: 4px;
   padding: 0px 4px;
   line-height: 1.4;
@@ -259,8 +248,8 @@
 }
 
 .itemActive .newBadge {
-  background: #000;
-  color: var(--accent);
+  background: var(--ink);
+  color: var(--on-ink);
 }
 
 @media (max-width: 600px) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import styles from './page.module.css'
-import { API_BASE as API_URL, useAuth } from '@/src/lib/auth-context'
+import { useAuth } from '@/src/lib/auth-context'
 
 const GITHUB_PROFILE_URL = 'https://github.com/zavxai'
 const GITHUB_REPO_URL = 'https://github.com/zavxai/inferr'
@@ -44,7 +44,7 @@ const features = [
     ),
     visual: (
       <div className={styles.mockSummary}>
-        <div className={styles.mockSummaryLabel}>⚡ AI Summary</div>
+        <div className={styles.mockSummaryLabel}>AI Summary</div>
         <div className={styles.mockSummaryTitle}>How Rust handles memory without GC</div>
         <div className={styles.mockSummaryPoints}>
           <div>1. Ownership rules enforce memory safety at compile time.</div>
@@ -162,24 +162,36 @@ const features = [
 ];
 
 const steps = [
-  { n: '01', title: 'Sign in with Google', desc: 'One click. No password, no setup.' },
-  { n: '02', title: 'Set your interests', desc: 'Tell us your stack. NestJS, Rust, LLMs — whatever you actually work with.' },
-  { n: '03', title: 'Feed builds itself', desc: 'Articles scraped, summarised, and ranked for you every 24h.' },
-  { n: '04', title: 'Ask it anything', desc: 'Use semantic chat to query your feed like a database.' },
+  {
+    n: '01',
+    title: 'Sign in with Google',
+    desc: 'One click. No password, no setup — just your Google account.',
+    label: 'Auth',
+  },
+  {
+    n: '02',
+    title: 'Set your interests',
+    desc: 'Tell us your stack. NestJS, Rust, LLMs — whatever you actually work with.',
+    label: 'Preferences',
+  },
+  {
+    n: '03',
+    title: 'Feed builds itself',
+    desc: 'Articles scraped, summarised, and ranked for you every 24 hours.',
+    label: 'Pipeline',
+  },
+  {
+    n: '04',
+    title: 'Ask it anything',
+    desc: 'Use semantic chat to query your feed like a database — with sources.',
+    label: 'Chat',
+  },
 ]
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
-  const [signingIn, setSigningIn] = useState(false)
   const router = useRouter()
   const { token, ready } = useAuth()
-
-  const handleSignIn = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    if (signingIn) return
-    setSigningIn(true)
-    window.location.href = `${API_URL}/auth/google`
-  }
 
   useEffect(() => {
     if (ready && token) router.replace('/feed')
@@ -233,7 +245,7 @@ export default function Home() {
       <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.navContent}>
           <div className={styles.logo}>
-            <Image src="/logo.png" alt="Logo" width={26} height={26} style={{ borderRadius: '4px' }} />
+            <Image src="/logo-v2.png" alt="inferr" width={28} height={28} className={styles.logoImg} priority unoptimized />
             <span className={styles.logoText}>inferr</span>
           </div>
           <div className={styles.navRight}>
@@ -250,9 +262,9 @@ export default function Home() {
         <div className={styles.sectionInner}>
           <div className={styles.heroGrid}>
             <div className={styles.heroLeft}>
-              <div className={`${styles.eyebrow} reveal`}>free · built in public</div>
+              <div className={`${styles.eyebrow} reveal`}>Free · built in public</div>
               <h1 className={`${styles.headline} reveal`}>
-                Your <span className={styles.accentWord}>AI</span> that reads<br />
+                Your AI that reads<br />
                 the internet. You just<br />
                 read <span className={styles.accentWord}>what matters.</span>
               </h1>
@@ -300,7 +312,7 @@ export default function Home() {
       {/* Features — alternating rows */}
       <div className={styles.featuresWrapper}>
         <div className={styles.sectionInner}>
-          <p className={`${styles.sectionLabel} reveal`}>What inferr helps you do</p>
+          <p className={`${styles.sectionLabel} reveal`}>Capabilities</p>
         </div>
         {features.map((f, i) => (
           <section key={f.title} className={`${styles.featureRow} ${i % 2 === 1 ? styles.featureRowReverse : ''}`}>
@@ -332,21 +344,34 @@ export default function Home() {
       </div>
 
       {/* How it works */}
-      <div className={styles.sectionInner}>
-        <p className={`${styles.sectionLabel} reveal`}>How it works</p>
-      </div>
       <section className={styles.howSection}>
         <div className={styles.sectionInner}>
-          <h2 className={`${styles.sectionHeadingLight} reveal`}>Up and running in 30 seconds</h2>
-          <div className={`${styles.stepsRow} reveal`}>
-            {steps.map((s) => (
-              <div key={s.n} className={styles.stepCard}>
-                <span className={styles.stepNumber}>{s.n}</span>
+          <div className={`${styles.howHeader} reveal`}>
+            <p className={styles.sectionLabel}>How it works</p>
+            <h2 className={styles.howHeading}>
+              Up and running in<br />
+              <span className={styles.accentWord}>30 seconds.</span>
+            </h2>
+            <p className={styles.howLead}>
+              Four steps from zero to a personalised developer feed — no config files, no credit card.
+            </p>
+          </div>
+
+          <ol className={`${styles.stepsRow} reveal`}>
+            {steps.map((s, i) => (
+              <li key={s.n} className={styles.stepCard}>
+                <div className={styles.stepTop}>
+                  <span className={styles.stepNumber}>{s.n}</span>
+                  <span className={styles.stepLabel}>{s.label}</span>
+                </div>
                 <h3 className={styles.stepTitle}>{s.title}</h3>
                 <p className={styles.stepDesc}>{s.desc}</p>
-              </div>
+                {i < steps.length - 1 && (
+                  <span className={styles.stepConnector} aria-hidden="true" />
+                )}
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 

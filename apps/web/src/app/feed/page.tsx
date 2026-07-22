@@ -430,7 +430,7 @@ export default function FeedPage() {
                     }
 
                     return (
-                      <ol className={styles.cardPoints} style={{ background: 'rgba(0, 0, 0, 0.25)' }}>
+                      <ol className={styles.cardPoints}>
                         {points.slice(0, 3).map((pt, idx) => (
                           <li key={idx} className={styles.cardPoint}>
                             <span className={styles.pointNumber}>{idx + 1}</span>

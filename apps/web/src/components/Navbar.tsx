@@ -26,12 +26,13 @@ export function Navbar({ onEditInterests }: NavbarProps) {
           {/* Brand logo & name */}
           <Link href="/feed" className={styles.logo}>
             <Image
-              src="/logo.png"
-              alt="Logo"
-              width={24}
-              height={24}
+              src="/logo-v2.png"
+              alt="inferr"
+              width={28}
+              height={28}
               className={styles.logoImg}
-              style={{ borderRadius: '4px' }}
+              priority
+              unoptimized
             />
             <span className={styles.logoText}>
               inferr<span className={styles.logoDot}>.</span>

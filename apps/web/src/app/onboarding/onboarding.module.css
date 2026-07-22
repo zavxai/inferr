@@ -10,18 +10,14 @@
 .card {
   width: 100%;
   max-width: 760px;
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(0, 201, 167, 0.05) 0%, transparent 60%),
-    var(--bg-secondary);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: calc(var(--radius-lg) + 4px);
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 2.25rem;
-  box-shadow: 
-    0 15px 50px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(0, 201, 167, 0.03);
+  box-shadow: var(--shadow-md);
 }
 
 .header {
@@ -31,24 +27,25 @@
 }
 
 .step {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.15em;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .title {
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 3vw, 2.4rem);
+  font-weight: 500;
   color: var(--text-primary);
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
 
 .subtitle {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -67,7 +64,7 @@
 
 .categoryTitle {
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -88,32 +85,32 @@
 
 .chip {
   padding: 0.45rem 1rem;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: 0.825rem;
+  font-size: 0.85rem;
   font-family: var(--font-body);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
 }
 
 .chip:hover {
-  border-color: rgba(0, 201, 167, 0.4);
+  border-color: var(--border-strong);
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
 }
 
 .chipSelected {
   border-color: var(--accent);
-  background: rgba(0, 201, 167, 0.08);
-  color: var(--accent-light);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   font-weight: 600;
-  box-shadow: 0 2px 12px rgba(0, 201, 167, 0.15);
+  box-shadow: none;
 }
 
 .checkIcon {
@@ -132,47 +129,46 @@
 }
 
 .count {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
 .count strong {
-  color: var(--accent-light);
-  font-family: var(--font-mono);
+  color: var(--accent-dark);
+  font-family: var(--font-body);
 }
 
 .cta {
-  padding: 0.75rem 1.75rem;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #000;
+  padding: 0.8rem 1.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--on-ink);
   font-size: 0.9rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
+  font-weight: 550;
+  font-family: var(--font-body);
   cursor: pointer;
   border: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 201, 167, 0.25);
+  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: none;
 }
 
 .cta:hover:not(:disabled) {
-  background: var(--accent-light);
+  background: var(--ink-hover);
   transform: translateY(-1px);
 }
 
 .cta:disabled {
-  opacity: 0.25;
+  opacity: 0.3;
   cursor: not-allowed;
   box-shadow: none;
 }
 
 .error {
   font-size: 0.85rem;
-  color: #f87171;
-  font-family: var(--font-mono);
+  color: var(--danger);
+  font-family: var(--font-body);
 }
 
-/* Responsive design */
 @media (max-width: 600px) {
   .card {
     padding: 1.5rem;

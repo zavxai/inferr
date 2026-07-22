@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="inferr">
+  <!-- Ivory plate -->
+  <rect width="512" height="512" rx="120" fill="#FAF9F5"/>
+  <!-- Soft warm inset -->
+  <rect x="28" y="28" width="456" height="456" rx="104" fill="#F0EEE6"/>
+
+  <!-- Abstract "infer" monogram:
+       vertical stem (slate) + clay focus node + three ranked feed bars
+       = reading the feed and elevating what matters -->
+  <!-- Stem -->
+  <rect x="148" y="148" width="48" height="216" rx="24" fill="#141413"/>
+  <!-- Focus / inference node (the "i" dot, clay) -->
+  <circle cx="172" cy="120" r="28" fill="#D97757"/>
+
+  <!-- Ranked relevance bars (shorter → longer = rising signal of what matters) -->
+  <rect x="236" y="292" width="96" height="36" rx="18" fill="#141413" opacity="0.28"/>
+  <rect x="236" y="232" width="140" height="36" rx="18" fill="#141413" opacity="0.55"/>
+  <rect x="236" y="172" width="180" height="36" rx="18" fill="#D97757"/>
+</svg>

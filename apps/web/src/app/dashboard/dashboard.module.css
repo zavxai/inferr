@@ -26,20 +26,16 @@
 }
 
 .profileCard {
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(0, 201, 167, 0.05) 0%, transparent 60%),
-    var(--bg-secondary);
-  border: 1px solid rgba(0, 201, 167, 0.15);
-  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-lg) + 2px);
   padding: 2.25rem;
   display: flex;
   align-items: center;
   gap: 2rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.4),
-    0 0 24px rgba(0, 201, 167, 0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .profileBgGlow {
@@ -48,7 +44,7 @@
   left: -20px;
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, rgba(0, 201, 167, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(217, 119, 87, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -63,23 +59,23 @@
 .avatarImg {
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(0, 201, 167, 0.4);
-  box-shadow: 0 0 16px rgba(0, 201, 167, 0.2);
+  border: 2px solid rgba(20, 20, 19, 0.15);
+  box-shadow: 0 0 16px rgba(217, 119, 87, 0.2);
 }
 
 .avatarInitials {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00C9A7, #008f75);
-  color: #000;
+  background: var(--ink);
+  color: var(--on-ink);
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  border: 2px solid rgba(0, 201, 167, 0.4);
+  font-family: var(--font-body);
+  border: 2px solid rgba(20, 20, 19, 0.15);
 }
 
 .onlineDot {
@@ -89,9 +85,9 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: var(--accent);
-  border: 2px solid var(--bg-secondary);
-  box-shadow: 0 0 8px var(--accent);
+  background-color: var(--olive);
+  border: 2px solid var(--bg-elevated);
+  box-shadow: none;
 }
 
 .profileInfo {
@@ -105,12 +101,12 @@
 }
 
 .profileBadge {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--accent-light);
-  background: rgba(0, 201, 167, 0.08);
-  border: 1px solid rgba(0, 201, 167, 0.25);
+  background: rgba(217, 119, 87, 0.1);
+  border: 1px solid rgba(217, 119, 87, 0.2);
   padding: 0.2rem 0.6rem;
   border-radius: 99px;
   text-transform: uppercase;
@@ -118,8 +114,9 @@
 }
 
 .profileName {
+  font-family: var(--font-display);
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-primary);
   letter-spacing: -0.02em;
   margin: 0;
@@ -139,13 +136,13 @@
 
 .terminalCard {
   width: 100%;
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 0.85rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-sm);
 }
 
 .terminalHeader {
@@ -168,9 +165,9 @@
   border-radius: 50%;
 }
 
-.terminalDots div:nth-child(1) { background-color: #ff5f57; }
-.terminalDots div:nth-child(2) { background-color: #ffbd2e; }
-.terminalDots div:nth-child(3) { background-color: #28c840; }
+.terminalDots div:nth-child(1) { background-color: #d97757; }
+.terminalDots div:nth-child(2) { background-color: #e8b39a; }
+.terminalDots div:nth-child(3) { background-color: #788c5d; }
 
 .terminalTitle {
   font-size: 0.725rem;
@@ -222,7 +219,7 @@
 }
 
 .sectionLabel {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--text-muted);
   letter-spacing: 0.04em;
@@ -235,33 +232,35 @@
 }
 
 .featureCard {
-  background: var(--bg-secondary);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .featureCard:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.015);
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-md);
 }
 
 .featureLabel {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.7rem;
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--accent-dark);
+  font-weight: 600;
   letter-spacing: 0.05em;
 }
 
 .featureTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
   color: var(--text-primary);
   margin: 0;
 }
@@ -348,7 +347,7 @@
 
 .loadingText {
   font-size: 0.85rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   color: var(--text-secondary);
 }
 
@@ -364,18 +363,18 @@
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(20, 20, 19, 0.06);
 }
 
 .errorIcon {
-  color: #f87171;
+  color: var(--danger);
   margin-bottom: 0.25rem;
 }
 
 .errorTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f87171;
+  color: var(--danger);
   margin: 0;
 }
 
@@ -388,7 +387,7 @@
 
 .errorRedirect {
   font-size: 0.75rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   color: var(--text-muted);
   margin-top: 0.5rem;
 }
@@ -402,17 +401,13 @@
 }
 
 .dangerCard {
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(239, 68, 68, 0.04) 0%, transparent 60%),
-    var(--bg-secondary);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  border-radius: calc(var(--radius-lg) + 2px);
   padding: 2.25rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.4),
-    0 0 24px rgba(239, 68, 68, 0.02);
+  box-shadow: var(--shadow-sm);
 }
 
 .dangerHeader {
@@ -423,13 +418,13 @@
 }
 
 .dangerIcon {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .dangerTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f87171;
+  color: var(--danger);
   margin: 0;
 }
 
@@ -448,7 +443,7 @@
 .deleteBtn {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  color: var(--danger);
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
   font-weight: 600;
@@ -459,7 +454,7 @@
 .deleteBtn:hover:not(:disabled) {
   background: #ef4444;
   color: #ffffff;
-  border-color: #ef4444;
+  border-color: var(--danger);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
 }
 
@@ -481,7 +476,7 @@
 
 .confirmText {
   font-size: 0.875rem;
-  color: #f87171;
+  color: var(--danger);
   font-weight: 600;
   margin: 0;
 }
@@ -518,9 +513,9 @@
 }
 
 .cancelBtn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--border-strong);
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
 }
 
 .btnSpinner {
