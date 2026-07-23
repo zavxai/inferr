@@ -1,11 +1,10 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { AiController } from './ai.controller';
-import { AuthModule } from '../auth/auth.module';
+import { ScraperKeyGuard } from '../scraper/scraper-key.guard';
 
 @Module({
-  imports: [forwardRef(() => AuthModule)],
-  providers: [AiService],
+  providers: [AiService, ScraperKeyGuard],
   controllers: [AiController],
   exports: [AiService],
 })

@@ -8,6 +8,7 @@ import { AppService } from '../src/app.service';
 
 import { ScraperController } from '../src/scraper/scraper.controller';
 import { ScraperService, ScrapeResult } from '../src/scraper/scraper.service';
+import { AiController } from '../src/ai/ai.controller';
 import { AiService } from '../src/ai/ai.service';
 import { FeedController } from '../src/feed/feed.controller';
 import { FeedService, FeedResponse } from '../src/feed/feed.service';
@@ -126,6 +127,68 @@ describe('API E2E (isolated modules)', () => {
         .post('/scraper/run')
         .set('Authorization', 'Bearer wrong-key')
         .expect(401);
+
+      process.env.SCRAPER_API_KEY = origKey;
+    });
+  });
+
+  describe('Ops-only AI process (AiController + ScraperKeyGuard)', () => {
+    let aiService: jest.Mocked<AiService>;
+
+    beforeEach(async () => {
+      aiService = {
+        processUnsummarized: jest.fn(),
+      } as any;
+
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        controllers: [AiController],
+        providers: [{ provide: AiService, useValue: aiService }],
+      }).compile();
+
+      app = moduleFixture.createNestApplication();
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
+      await app.init();
+    });
+
+    afterEach(async () => {
+      await app.close();
+    });
+
+    it('POST /ai/process requires SCRAPER_API_KEY (rejects missing, JWT, wrong key)', async () => {
+      const origKey = process.env.SCRAPER_API_KEY;
+      process.env.SCRAPER_API_KEY = 'test-scraper-key-xyz';
+
+      (aiService.processUnsummarized as jest.Mock).mockResolvedValue({
+        processed: 3,
+        failed: 0,
+      });
+
+      // no auth
+      await request(app.getHttpServer()).post('/ai/process').expect(401);
+
+      // user JWT must not work (this is ops-only, not end-user)
+      const { authHeader } = await getTestAuthContextForE2E();
+      await request(app.getHttpServer())
+        .post('/ai/process')
+        .set('Authorization', authHeader)
+        .expect(401);
+
+      // wrong scraper key
+      await request(app.getHttpServer())
+        .post('/ai/process')
+        .set('Authorization', 'Bearer wrong-key')
+        .expect(401);
+
+      // valid scraper key
+      await request(app.getHttpServer())
+        .post('/ai/process')
+        .set('Authorization', 'Bearer test-scraper-key-xyz')
+        .expect(201)
+        .expect({ processed: 3, failed: 0 });
+
+      expect(aiService.processUnsummarized).toHaveBeenCalledTimes(1);
 
       process.env.SCRAPER_API_KEY = origKey;
     });
