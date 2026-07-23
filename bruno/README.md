@@ -97,16 +97,17 @@ Constraints: `message` max 500 chars, `history` max 20 turns, each `content` max
 
 ### Process Summaries
 Manually trigger summarization + embedding for articles that have content but no summary yet.
+Ops-only — same key as the scraper (not a user JWT).
 
 ```
 POST /ai/process
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{scraperKey}}
 ```
 
 ---
 
 ## Notes
 
-- The scraper endpoint requires `SCRAPER_API_KEY` (not a user JWT). Set it as `scraperKey` in your Bruno environment.
+- The scraper and AI process endpoints require `SCRAPER_API_KEY` (not a user JWT). Set it as `scraperKey` in your Bruno environment.
 - Chat history `role` must be `"user"` or `"assistant"` — `"system"` is rejected at the API boundary.
 - Render's free tier sleeps after inactivity; the first request after a cold start may take ~30s.
