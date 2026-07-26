@@ -1,6 +1,6 @@
 {
   "name": "@ai-developer-feed/web",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Next.js frontend",
   "private": true,
   "scripts": {
