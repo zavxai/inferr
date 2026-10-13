@@ -21,8 +21,8 @@ async function bootstrap() {
   try {
     await db.execute(sql`SELECT 1`);
     logger.log('Database connection is healthy');
-  } catch {
-    logger.error('Database connection failed');
+  } catch (err) {
+    logger.error('Database connection failed', err);
     process.exit(1);
   }
 

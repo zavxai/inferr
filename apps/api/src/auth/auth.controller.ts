@@ -17,17 +17,57 @@ import { GoogleAuthGuard } from './google-auth.guard';
 import { GoogleMcpAuthGuard } from './google-mcp-auth.guard';
 import { UsersService } from '../users/users.service';
 import { McpOAuthProvider } from '../mcp/mcp-oauth.provider';
+import { REFRESH_TOKEN_TTL_MS } from './auth.service';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const deploymentIsHttps = [process.env.API_URL, process.env.FRONTEND_URL].some(
+  (url) => url?.startsWith('https://'),
+);
+const configuredCookieDomain = process.env.COOKIE_DOMAIN;
+const isInferrDeployment = [process.env.API_URL, process.env.FRONTEND_URL].some(
+  (url) => {
+    try {
+      const hostname = new URL(url ?? '').hostname;
+      return hostname.endsWith('.inferr.xyz') || hostname === 'inferr.xyz';
+    } catch {
+      return false;
+    }
+  },
+);
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? ('none' as const) : ('lax' as const),
-  domain: isProduction ? '.inferr.xyz' : undefined,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  // Do not depend on NODE_ENV here: Docker Compose commonly runs a public
+  // deployment with NODE_ENV=development. The actual public URLs determine
+  // whether browsers require the Secure flag and shared subdomain cookie.
+  secure: deploymentIsHttps,
+  // `inferr.xyz` and `api.inferr.xyz` are different origins but the same
+  // browser site. Lax cookies are therefore sent to the API from the web app,
+  // without relying on third-party-cookie behavior. Keep this host-only by
+  // default: the cookie is only ever consumed by api.inferr.xyz.
+  sameSite: 'lax' as const,
+  domain: configuredCookieDomain,
+  maxAge: REFRESH_TOKEN_TTL_MS,
   path: '/',
 };
+
+// Before the host-only cookie above, production sessions used this domain-wide
+// cookie. Clear it during sign-in/logout so browsers do not send two cookies
+// named `refresh_token` and leave Express to pick a stale one.
+const LEGACY_REFRESH_COOKIE_OPTIONS = isInferrDeployment
+  ? {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none' as const,
+      domain: '.inferr.xyz',
+      path: '/',
+    }
+  : undefined;
+
+function clearLegacyRefreshCookie(res: Response) {
+  if (LEGACY_REFRESH_COOKIE_OPTIONS) {
+    res.clearCookie('refresh_token', LEGACY_REFRESH_COOKIE_OPTIONS);
+  }
+}
 
 @Controller('auth')
 export class AuthController {
@@ -64,6 +104,7 @@ export class AuthController {
     const refreshToken = await this.authService.createRefreshToken(user.id);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+    clearLegacyRefreshCookie(res);
     res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
     return res.redirect(`${frontendUrl}/auth/callback`);
   }
@@ -149,9 +190,6 @@ export class AuthController {
   @UseGuards(UserThrottlerGuard)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async refresh(@Req() req: Request, @Res() res: Response) {
-    console.log('[refresh] cookie header:', req.headers.cookie ?? '(none)');
-    console.log('[refresh] parsed cookies:', JSON.stringify(req.cookies));
-
     const oldToken = (req.cookies as Record<string, string | undefined>)[
       'refresh_token'
     ];
@@ -163,6 +201,7 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.rotateRefreshToken(oldToken);
 
+    clearLegacyRefreshCookie(res);
     res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
     return res.json({ accessToken });
   }
@@ -177,6 +216,7 @@ export class AuthController {
       await this.authService.revokeRefreshToken(token);
     }
 
+    clearLegacyRefreshCookie(res);
     res.clearCookie('refresh_token', REFRESH_COOKIE_OPTIONS);
     return res.json({ message: 'Logged out' });
   }

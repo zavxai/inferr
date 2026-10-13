@@ -84,7 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .catch(() => {});
           return data.accessToken;
         }
-        if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+        // A 401 means the cookie is missing, expired, or invalid. Retrying it
+        // cannot restore a session and quickly trips the server's refresh
+        // throttle, which used to obscure the actual failure as a 429.
+        // Retry only transient server failures (for example, a cold API).
+        if (attempt === 0 && res.status >= 500) {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+        return null;
       }
       return null;
     } catch {
