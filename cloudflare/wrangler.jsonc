@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "inferr-origin-fallback",
+  "main": "worker.ts",
+  "compatibility_date": "2026-08-11",
+  "routes": [{ "pattern": "inferr.xyz/*", "zone_name": "inferr.xyz" }]
+  // Set ORIGIN_HOST as a Worker secret; do not point it at the proxied
+  // inferr.xyz hostname or the Worker will route back to itself.
+}

@@ -9,6 +9,9 @@ import { refreshTokens } from '../db/schema';
 import type { User } from '../db/schema';
 
 const GRACE_WINDOW_MS = 5_000; // accept a just-rotated token for 5s (multi-tab safety)
+// A refresh token is the durable browser session. Access tokens remain short
+// lived (15 minutes), while this token lets a returning user get a new one.
+export const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
@@ -42,7 +45,7 @@ export class AuthService {
   async createRefreshToken(userId: string): Promise<string> {
     const raw = crypto.randomBytes(64).toString('hex');
     const tokenHash = this.hashToken(raw);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
     await this.db
       .insert(refreshTokens)
@@ -99,7 +102,7 @@ export class AuthService {
 
             const newRaw = crypto.randomBytes(64).toString('hex');
             const newHash = this.hashToken(newRaw);
-            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
             let rotated = false;
             await this.db.transaction(async (tx) => {
@@ -151,7 +154,7 @@ export class AuthService {
     // Normal rotation
     const newRaw = crypto.randomBytes(64).toString('hex');
     const newHash = this.hashToken(newRaw);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
     await this.db.transaction(async (tx) => {
       await tx
