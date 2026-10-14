@@ -21,7 +21,7 @@ export function McpDialog({ onClose }: McpDialogProps) {
       mcpServers: {
         inferr: {
           command: 'npx',
-          args: ['-y', '@modelcontextprotocol/client-cli', 'http://localhost:3001/mcp'],
+          args: ['-y', '@modelcontextprotocol/client-cli', `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001'}/mcp`],
         },
       },
     },
