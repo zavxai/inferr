@@ -11,6 +11,7 @@ import {
 import type { Request, Response } from 'express';
 import { McpService } from './mcp.service';
 import { McpOAuthProvider } from './mcp-oauth.provider';
+import { getApiUrl } from '../config/public-urls';
 
 const RESOURCE_METADATA_PATH = '/.well-known/oauth-protected-resource/mcp';
 
@@ -33,7 +34,7 @@ export class McpController {
     res: Response,
   ): Promise<string | null> {
     const authHeader = req.headers.authorization;
-    const apiUrl = process.env.API_URL ?? 'http://localhost:3001';
+    const apiUrl = getApiUrl();
 
     if (!authHeader?.startsWith('Bearer ')) {
       res

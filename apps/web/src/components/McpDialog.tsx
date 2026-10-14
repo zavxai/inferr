@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import styles from './McpDialog.module.css';
+import { API_BASE } from '@/src/lib/server-status';
 
 interface McpDialogProps {
   onClose: () => void;
@@ -21,7 +22,7 @@ export function McpDialog({ onClose }: McpDialogProps) {
       mcpServers: {
         inferr: {
           command: 'npx',
-          args: ['-y', '@modelcontextprotocol/client-cli', `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001'}/mcp`],
+          args: ['-y', '@modelcontextprotocol/client-cli', `${API_BASE}/mcp`],
         },
       },
     },

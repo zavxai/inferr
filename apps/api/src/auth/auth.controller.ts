@@ -18,21 +18,20 @@ import { GoogleMcpAuthGuard } from './google-mcp-auth.guard';
 import { UsersService } from '../users/users.service';
 import { McpOAuthProvider } from '../mcp/mcp-oauth.provider';
 import { REFRESH_TOKEN_TTL_MS } from './auth.service';
+import { getApiUrl, getFrontendUrl } from '../config/public-urls';
 
-const deploymentIsHttps = [process.env.API_URL, process.env.FRONTEND_URL].some(
-  (url) => url?.startsWith('https://'),
+const deploymentIsHttps = [getApiUrl(), getFrontendUrl()].some((url) =>
+  url.startsWith('https://'),
 );
 const configuredCookieDomain = process.env.COOKIE_DOMAIN;
-const isInferrDeployment = [process.env.API_URL, process.env.FRONTEND_URL].some(
-  (url) => {
-    try {
-      const hostname = new URL(url ?? '').hostname;
-      return hostname.endsWith('.inferr.xyz') || hostname === 'inferr.xyz';
-    } catch {
-      return false;
-    }
-  },
-);
+const isInferrDeployment = [getApiUrl(), getFrontendUrl()].some((url) => {
+  try {
+    const hostname = new URL(url).hostname;
+    return hostname.endsWith('.inferr.xyz') || hostname === 'inferr.xyz';
+  } catch {
+    return false;
+  }
+});
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -102,7 +101,7 @@ export class AuthController {
       photos: googleProfile.photos ?? [],
     });
     const refreshToken = await this.authService.createRefreshToken(user.id);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getFrontendUrl();
 
     clearLegacyRefreshCookie(res);
     res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);

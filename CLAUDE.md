@@ -136,23 +136,26 @@ NestJS internal cron tasks are scheduled via `@nestjs/schedule` decorators in `S
 - `src/lib/server-status.tsx` — thin wrapper: exports `API_BASE` constant and `apiFetch` (plain `fetch` pass-through). The former wake overlay and `ServerStatusProvider` have been removed.
 
 ### Environment variables
-Single `.env` at the repo root, loaded by both apps. Key values:
+Single `.env` at the repo root, loaded by both apps. **`.env` is gitignored — it never travels with git, so every machine has its own copy.** That is why ports used to drift: the same number lived in many files and none was authoritative.
+
+**Single source of truth.** Set these and let everything else be derived (see `apps/api/src/config/public-urls.ts`):
 
 ```
-DB_PORT=5433              # Docker maps postgres to 5433 (not 5432)
-REDIS_PORT=6380           # Docker maps redis to 6380 (not 6379)
-API_PORT=3001
-NEXT_PUBLIC_API_URL=http://localhost:3001
-FRONTEND_URL=http://localhost:3000
-OPENAI_API_KEY=           # Required for embeddings and RAG
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
-GOOGLE_MCP_CALLBACK_URL=http://localhost:3001/auth/google/mcp-callback  # MCP OAuth flow
-API_URL=http://localhost:3001  # Used by mcpAuthRouter (issuerUrl/baseUrl) and MCP WWW-Authenticate headers
+API_URL=http://localhost:3001        # public base URL of the API; prod: https://api.inferr.xyz
+FRONTEND_URL=http://localhost:4000   # public base URL of the web; prod: https://inferr.xyz
+NEXT_PUBLIC_API_URL=http://localhost:3001   # what the browser calls; MUST equal API_URL
+API_HOST_PORT=3001                   # host port the API is published on; MUST equal the tunnel target (prod)
 ```
 
-In production set `API_URL=https://api.inferr.xyz` and `GOOGLE_MCP_CALLBACK_URL=https://api.inferr.xyz/auth/google/mcp-callback`. Also add the production callback URL to Google Cloud Console → OAuth 2.0 Client → Authorized redirect URIs.
+Derived automatically (only set to override):
+- `GOOGLE_CALLBACK_URL` → `${API_URL}/auth/google/callback`
+- `GOOGLE_MCP_CALLBACK_URL` → `${API_URL}/auth/google/mcp-callback`
+- MCP issuer + `WWW-Authenticate` → `API_URL`
+- CORS origin → `FRONTEND_URL`
+
+Other keys: `API_PORT` (container listen, 3001), `DB_HOST_PORT` (host publish, 5434; container is always `5432`), `WEB_PORT` (4000), `OPENAI_API_KEY`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `JWT_SECRET`, `SCRAPER_API_KEY`, optional `LANGFUSE_*`/`OTEL_*`.
+
+The production chain that must line up — `cloudflared tunnel → localhost:${API_HOST_PORT}` == `docker publishes ${API_HOST_PORT}:${API_PORT}` == `API_URL` == `NEXT_PUBLIC_API_URL`. Run **`bash scripts/preflight.sh`** to verify all of it at once before/after a deploy. Whatever the Google callbacks resolve to must also be registered in Google Cloud Console → OAuth 2.0 Client → Authorized redirect URIs.
 
 ### Bruno API collection
 Requests live in `bruno/`. To manually trigger the scraper: **Run Scraper** (`POST /scraper/run`). The collection also includes RAG init/query requests and a health check.

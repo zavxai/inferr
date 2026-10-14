@@ -12,6 +12,7 @@ import { DRIZZLE } from './db/drizzle.provider';
 import type { DrizzleDB } from './db/drizzle.provider';
 import { McpOAuthProvider } from './mcp/mcp-oauth.provider';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { getApiUrl, getFrontendUrl } from './config/public-urls';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -48,7 +49,7 @@ async function bootstrap() {
   // /mcp/revoke) directly on the underlying Express app. It must be registered
   // before app.listen(); the well-known routes live at the application root.
   const mcpOAuthProvider = app.get(McpOAuthProvider);
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   const expressApp = app.getHttpAdapter().getInstance() as {
     use: (handler: unknown) => void;
   };
@@ -66,7 +67,7 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: getFrontendUrl(),
     credentials: true,
   });
 

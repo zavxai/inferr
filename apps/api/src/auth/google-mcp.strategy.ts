@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, StrategyOptions } from 'passport-google-oauth20';
+import { getGoogleMcpCallbackUrl } from '../config/public-urls';
 
 /**
  * A second Google OAuth strategy used only by the MCP authorization flow.
@@ -24,9 +25,7 @@ export class GoogleMcpStrategy extends PassportStrategy(
     const options: StrategyOptions = {
       clientID,
       clientSecret,
-      callbackURL:
-        process.env.GOOGLE_MCP_CALLBACK_URL ||
-        'http://localhost:3001/auth/google/mcp-callback',
+      callbackURL: getGoogleMcpCallbackUrl(),
       scope: ['email', 'profile'],
     };
     super(options);

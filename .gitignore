@@ -32,6 +32,9 @@ opencode.json
 *.swo
 *~
 
+# pnpm store (local artifact)
+.pnpm-store/
+
 # turbo
 .turbo/
 *.tsbuildinfo

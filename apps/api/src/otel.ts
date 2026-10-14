@@ -28,6 +28,9 @@ const resource = defaultResource().merge(
 export const otelSDK = new NodeSDK({
   resource,
   traceExporter,
+  // Jaeger only ingests traces, not OTLP metrics. Without this, the SDK's
+  // default metric reader POSTs to /v1/metrics and logs OTLPExporterError: Not Found.
+  metricReaders: [],
   instrumentations: [
     getNodeAutoInstrumentations({
       // Disable noisy filesystem tracing to keep trace telemetry clean
