@@ -1,0 +1,29 @@
+# Production overrides. Prod runs with BOTH files:
+#   docker compose -p inferr --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Differences from the dev-oriented base file:
+#   - api runs with NODE_ENV=production
+#   - web is a BUILT image (next build + next start) with NO source bind-mount,
+#     so edits in a working folder can never hot-reload into production.
+services:
+  api:
+    environment:
+      NODE_ENV: production
+
+  web:
+    image: inferr-web:prod
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${API_HOST_PORT:-3001}}
+    # Drop the dev command, the bind-mount, and the working_dir from the base file.
+    command: !reset null
+    working_dir: !reset null
+    volumes: !reset []
+    environment:
+      NODE_ENV: production
+      PORT: ${WEB_PORT:-4000}
+      WEB_PORT: ${WEB_PORT:-4000}
+    depends_on:
+      - api

@@ -1,6 +1,7 @@
 node_modules
-apps/web
-apps/api/node_modules
+**/node_modules
+**/.next
+**/.pnpm-store
 apps/api/dist
 apps/api/coverage
 apps/api/test
@@ -10,6 +11,5 @@ apps/api/test
 .github
 bruno
 *.md
-docker-compose.yml
 data
 
